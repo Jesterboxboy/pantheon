@@ -48,7 +48,21 @@
     justify-content: space-around;
     flex-direction: row;
     padding: 0 10px;
+
 }
+.kamicha {
+  transform: rotate(90deg);
+}
+.shimocha {
+  transform: rotate(-90deg);
+}
+.toimen {
+  transform: rotate(180deg);
+}
+.my {
+  transform: rotate(0deg);
+}
+
 
 .side {
     height: 80%;
