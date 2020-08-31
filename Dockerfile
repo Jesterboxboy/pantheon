@@ -14,8 +14,8 @@ ENV COMPOSER_CACHE_DIR  /home/user/.composer-cache
 ENV DB_PORT             5532
 
 ENV MIMIR_URL http://localhost:4001
-ENV RHEDA_URL http://localhost:4002
-ENV TYR_URL   http://localhost:4003
+ENV RHEDA_URL http://10.11.12.138:4002
+ENV TYR_URL   https://10.11.12.138:4003
 ENV FREY_URL  http://localhost:4004
 
 ENV IS_DOCKER 1

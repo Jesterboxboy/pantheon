@@ -9,11 +9,11 @@ NC = $(shell echo -e '\033[0m') # No Color
 
 .PHONY: get_docker_id
 get_docker_id:
-	$(eval RUNNING_DOCKER_ID := $(shell docker ps | grep pantheondev | awk '{print $$1}'))
+	$(eval RUNNING_DOCKER_ID := $(shell docker ps | grep pantheondevnew | awk '{print $$1}'))
 
 .PHONY: get_docker_idle_id
 get_docker_idle_id:
-	$(eval IDLE_DOCKER_ID := $(shell docker ps -a | grep pantheondev | awk '{print $$1}'))
+	$(eval IDLE_DOCKER_ID := $(shell docker ps -a | grep pantheondevnew | awk '{print $$1}'))
 
 .PHONY: get_pgadmin_id
 get_pgadmin_id:
@@ -48,7 +48,7 @@ kill: stop get_docker_idle_id get_pgadmin_idle_id
 container: get_docker_id
 	@if [ "$(RUNNING_DOCKER_ID)" = "" ]; then \
 		echo "Hint: you may need to run this as root on some linux distros. Try it in case of any error."; \
-		docker build -t pantheondev . ; \
+		docker build -t pantheondevnew . ; \
 	else \
 		echo "${RED}Pantheon container is running, you must stop it before rebuild.${NC}"; \
 	fi
@@ -67,7 +67,7 @@ pgadmin_start: get_pgadmin_id get_pgadmin_idle_id
 			docker start $(IDLE_PGADMIN_ID) ; \
 		else \
 			docker pull dpage/pgadmin4 && \
-			docker run --link=pantheondev -p 5632:80 \
+			docker run --link=pantheondevnew -p 5632:80 \
 				-e "PGADMIN_DEFAULT_EMAIL=dev@pantheon.local" \
 				-e "PGADMIN_DEFAULT_PASSWORD=password" \
 				-d dpage/pgadmin4 \
@@ -120,13 +120,13 @@ pantheon_run: get_docker_id get_docker_idle_id
 				-d -e LOCAL_USER_ID=$(UID) \
 				-e COVERALLS_REPO_TOKEN=$(COVERALLS_REPO_TOKEN) \
 				-e COVERALLS_RUN_LOCALLY=1 \
-				-p 127.0.0.1:4001:4001 -p 127.0.0.1:4002:4002 -p 127.0.0.1:4003:4003 -p 127.0.0.1:4004:4004 -p 127.0.0.1:5532:5532 \
+				-p 0.0.0.0:4001:4001 -p 0.0.0.0:4002:4002 -p 0.0.0.0:4003:4003 -p 127.0.0.1:4004:4004 -p 127.0.0.1:5532:5532 \
 				-v `pwd`/Tyr:/var/www/html/Tyr:z \
 				-v `pwd`/Mimir:/var/www/html/Mimir:z \
 				-v `pwd`/Rheda:/var/www/html/Rheda:z \
 				-v `pwd`/Frey:/var/www/html/Frey:z \
 				-v `pwd`/:/var/www/html/pantheon:z \
-				--name=pantheondev \
+				--name=pantheondevnew \
 				pantheondev; \
 		fi \
 	fi
@@ -141,7 +141,7 @@ pantheon_stop: get_docker_id
 	fi
 
 .PHONY: run
-run: pantheon_run pgadmin_start
+run: pantheon_run 
 
 .PHONY: stop
 stop: pantheon_stop pgadmin_stop

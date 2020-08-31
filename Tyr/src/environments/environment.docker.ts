@@ -20,9 +20,9 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:4001',
+  apiUrl: 'https://mimir.jesterbox.org',
   guiFix: (src: string) => src,
   keyPrefix: 'tyr',
-  cookieDomain: null, // when working on localhost this must be omitted!
-  metrikaId: 101010101, // dummy number for testing
-};
+  cookieDomain: 'm.jesterbox.org', // when working on localhost this must be omitted!
+  metrikaId: 23423443, // dummy number for testing
+}

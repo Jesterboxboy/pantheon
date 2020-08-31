@@ -19,8 +19,8 @@ prebuild:
 dev:
 	./node_modules/.bin/ng serve
 
-docker:
-	./node_modules/.bin/ng serve --configuration=docker
+docker: 
+	./node_modules/.bin/ng serve --publicHost m.jesterbox.org --env=docker
 
 PHONY: i18n_extract
 i18n_extract:

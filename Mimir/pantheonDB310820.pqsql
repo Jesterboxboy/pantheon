@@ -1,0 +1,3187 @@
+--
+-- PostgreSQL database cluster dump
+--
+
+SET default_transaction_read_only = off;
+
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+
+--
+-- Roles
+--
+
+CREATE ROLE frey;
+ALTER ROLE frey WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION NOBYPASSRLS PASSWORD 'md5857995b7aa107e2f1010d10d4f206db8';
+CREATE ROLE michaeld;
+ALTER ROLE michaeld WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION NOBYPASSRLS PASSWORD 'md54850cf11d101c0ca5e28518a192f7b55';
+CREATE ROLE mimir;
+ALTER ROLE mimir WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION NOBYPASSRLS PASSWORD 'md595b5178da51e06545172d68e1776b64a';
+CREATE ROLE postgres;
+ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS PASSWORD 'md5dbd684f46e48df010e72af649d747932';
+
+
+
+
+
+
+--
+-- Database creation
+--
+
+CREATE DATABASE frey WITH TEMPLATE = template0 OWNER = postgres;
+GRANT ALL ON DATABASE frey TO frey;
+CREATE DATABASE frey_unit WITH TEMPLATE = template0 OWNER = postgres;
+GRANT ALL ON DATABASE frey_unit TO frey;
+CREATE DATABASE mimir WITH TEMPLATE = template0 OWNER = postgres;
+GRANT ALL ON DATABASE mimir TO mimir;
+GRANT ALL ON DATABASE mimir TO michaeld;
+CREATE DATABASE mimir_unit WITH TEMPLATE = template0 OWNER = postgres;
+GRANT ALL ON DATABASE mimir_unit TO mimir;
+GRANT ALL ON DATABASE mimir_unit TO michaeld;
+REVOKE CONNECT,TEMPORARY ON DATABASE template1 FROM PUBLIC;
+GRANT CONNECT ON DATABASE template1 TO PUBLIC;
+
+
+\connect frey
+
+SET default_transaction_read_only = off;
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 10.10
+-- Dumped by pg_dump version 10.10
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: group; Type: TABLE; Schema: public; Owner: frey
+--
+
+CREATE TABLE public."group" (
+    id integer NOT NULL,
+    title character varying(255) NOT NULL,
+    label_color character varying(255),
+    description text NOT NULL
+);
+
+
+ALTER TABLE public."group" OWNER TO frey;
+
+--
+-- Name: group_access; Type: TABLE; Schema: public; Owner: frey
+--
+
+CREATE TABLE public.group_access (
+    id integer NOT NULL,
+    group_id integer NOT NULL,
+    event_ids character varying(255) NOT NULL,
+    acl_type character varying(32) NOT NULL,
+    acl_name character varying(255) NOT NULL,
+    acl_value character varying(255) NOT NULL
+);
+
+
+ALTER TABLE public.group_access OWNER TO frey;
+
+--
+-- Name: COLUMN group_access.event_ids; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.group_access.event_ids IS 'Comma-separated list of event IDs. Index is explicitly omitted, because one should not search by this field anyway';
+
+
+--
+-- Name: COLUMN group_access.acl_type; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.group_access.acl_type IS 'Data type stored in this cell. Can be boolean, enum or integer';
+
+
+--
+-- Name: COLUMN group_access.acl_name; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.group_access.acl_name IS 'ACL item recognizable name to differentiate this one from others';
+
+
+--
+-- Name: COLUMN group_access.acl_value; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.group_access.acl_value IS 'ACL value. Has limit of 255 bytes long for performance reasons';
+
+
+--
+-- Name: group_access_id_seq; Type: SEQUENCE; Schema: public; Owner: frey
+--
+
+CREATE SEQUENCE public.group_access_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.group_access_id_seq OWNER TO frey;
+
+--
+-- Name: group_access_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: frey
+--
+
+ALTER SEQUENCE public.group_access_id_seq OWNED BY public.group_access.id;
+
+
+--
+-- Name: group_id_seq; Type: SEQUENCE; Schema: public; Owner: frey
+--
+
+CREATE SEQUENCE public.group_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.group_id_seq OWNER TO frey;
+
+--
+-- Name: group_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: frey
+--
+
+ALTER SEQUENCE public.group_id_seq OWNED BY public."group".id;
+
+
+--
+-- Name: person; Type: TABLE; Schema: public; Owner: frey
+--
+
+CREATE TABLE public.person (
+    id integer NOT NULL,
+    email character varying(255) NOT NULL,
+    auth_hash character varying(255) NOT NULL,
+    auth_reset_token character varying(255),
+    auth_salt character varying(255) NOT NULL,
+    title character varying(255) NOT NULL,
+    phone character varying(255),
+    city character varying(255),
+    tenhou_id character varying(255),
+    disabled integer NOT NULL
+);
+
+
+ALTER TABLE public.person OWNER TO frey;
+
+--
+-- Name: COLUMN person.email; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.person.email IS 'PERSONAL DATA';
+
+
+--
+-- Name: COLUMN person.auth_reset_token; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.person.auth_reset_token IS 'This field stores temporary secure token if user requests changing his password';
+
+
+--
+-- Name: COLUMN person.auth_salt; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.person.auth_salt IS 'App-level salt to make client-side permanent token';
+
+
+--
+-- Name: COLUMN person.phone; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.person.phone IS 'PERSONAL DATA';
+
+
+--
+-- Name: person_access; Type: TABLE; Schema: public; Owner: frey
+--
+
+CREATE TABLE public.person_access (
+    id integer NOT NULL,
+    person_id integer NOT NULL,
+    event_ids character varying(255) NOT NULL,
+    acl_type character varying(32) NOT NULL,
+    acl_name character varying(255) NOT NULL,
+    acl_value character varying(255) NOT NULL
+);
+
+
+ALTER TABLE public.person_access OWNER TO frey;
+
+--
+-- Name: COLUMN person_access.event_ids; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.person_access.event_ids IS 'Comma-separated list of event IDs. Index is explicitly omitted, because one should not search by this field anyway';
+
+
+--
+-- Name: COLUMN person_access.acl_type; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.person_access.acl_type IS 'Data type stored in this cell. Can be boolean, enum or integer';
+
+
+--
+-- Name: COLUMN person_access.acl_name; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.person_access.acl_name IS 'ACL item recognizable name to differentiate this one from others';
+
+
+--
+-- Name: COLUMN person_access.acl_value; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.person_access.acl_value IS 'ACL value. Has limit of 255 bytes long for performance reasons';
+
+
+--
+-- Name: person_access_id_seq; Type: SEQUENCE; Schema: public; Owner: frey
+--
+
+CREATE SEQUENCE public.person_access_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.person_access_id_seq OWNER TO frey;
+
+--
+-- Name: person_access_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: frey
+--
+
+ALTER SEQUENCE public.person_access_id_seq OWNED BY public.person_access.id;
+
+
+--
+-- Name: person_group; Type: TABLE; Schema: public; Owner: frey
+--
+
+CREATE TABLE public.person_group (
+    id integer NOT NULL,
+    person_id integer NOT NULL,
+    group_id integer NOT NULL,
+    "order" integer NOT NULL
+);
+
+
+ALTER TABLE public.person_group OWNER TO frey;
+
+--
+-- Name: person_group_id_seq; Type: SEQUENCE; Schema: public; Owner: frey
+--
+
+CREATE SEQUENCE public.person_group_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.person_group_id_seq OWNER TO frey;
+
+--
+-- Name: person_group_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: frey
+--
+
+ALTER SEQUENCE public.person_group_id_seq OWNED BY public.person_group.id;
+
+
+--
+-- Name: person_id_seq; Type: SEQUENCE; Schema: public; Owner: frey
+--
+
+CREATE SEQUENCE public.person_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.person_id_seq OWNER TO frey;
+
+--
+-- Name: person_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: frey
+--
+
+ALTER SEQUENCE public.person_id_seq OWNED BY public.person.id;
+
+
+--
+-- Name: phinxlog; Type: TABLE; Schema: public; Owner: frey
+--
+
+CREATE TABLE public.phinxlog (
+    version bigint NOT NULL,
+    migration_name character varying(100),
+    start_time timestamp without time zone,
+    end_time timestamp without time zone,
+    breakpoint boolean DEFAULT false NOT NULL
+);
+
+
+ALTER TABLE public.phinxlog OWNER TO frey;
+
+--
+-- Name: registrant; Type: TABLE; Schema: public; Owner: frey
+--
+
+CREATE TABLE public.registrant (
+    id integer NOT NULL,
+    email character varying(255) NOT NULL,
+    auth_hash character varying(255) NOT NULL,
+    auth_salt character varying(255) NOT NULL,
+    approval_code character varying(255) NOT NULL
+);
+
+
+ALTER TABLE public.registrant OWNER TO frey;
+
+--
+-- Name: COLUMN registrant.auth_salt; Type: COMMENT; Schema: public; Owner: frey
+--
+
+COMMENT ON COLUMN public.registrant.auth_salt IS 'App-level salt to make client-side permanent token';
+
+
+--
+-- Name: registrant_id_seq; Type: SEQUENCE; Schema: public; Owner: frey
+--
+
+CREATE SEQUENCE public.registrant_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.registrant_id_seq OWNER TO frey;
+
+--
+-- Name: registrant_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: frey
+--
+
+ALTER SEQUENCE public.registrant_id_seq OWNED BY public.registrant.id;
+
+
+--
+-- Name: group id; Type: DEFAULT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public."group" ALTER COLUMN id SET DEFAULT nextval('public.group_id_seq'::regclass);
+
+
+--
+-- Name: group_access id; Type: DEFAULT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.group_access ALTER COLUMN id SET DEFAULT nextval('public.group_access_id_seq'::regclass);
+
+
+--
+-- Name: person id; Type: DEFAULT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.person ALTER COLUMN id SET DEFAULT nextval('public.person_id_seq'::regclass);
+
+
+--
+-- Name: person_access id; Type: DEFAULT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.person_access ALTER COLUMN id SET DEFAULT nextval('public.person_access_id_seq'::regclass);
+
+
+--
+-- Name: person_group id; Type: DEFAULT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.person_group ALTER COLUMN id SET DEFAULT nextval('public.person_group_id_seq'::regclass);
+
+
+--
+-- Name: registrant id; Type: DEFAULT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.registrant ALTER COLUMN id SET DEFAULT nextval('public.registrant_id_seq'::regclass);
+
+
+--
+-- Data for Name: group; Type: TABLE DATA; Schema: public; Owner: frey
+--
+
+COPY public."group" (id, title, label_color, description) FROM stdin;
+1	Administrators	#990000	System administrators
+\.
+
+
+--
+-- Data for Name: group_access; Type: TABLE DATA; Schema: public; Owner: frey
+--
+
+COPY public.group_access (id, group_id, event_ids, acl_type, acl_name, acl_value) FROM stdin;
+1	1		bool	__getPersonAccess	true
+2	1		bool	__getGroupAccess	true
+3	1		bool	__addRuleForPerson	true
+4	1		bool	__addRuleForGroup	true
+5	1		bool	__addSystemWideRuleForPerson	true
+6	1		bool	__addSystemWideRuleForGroup	true
+7	1		bool	__updateRuleForPerson	true
+8	1		bool	__updateRuleForGroup	true
+9	1		bool	__deleteRuleForPerson	true
+10	1		bool	__deleteRuleForGroup	true
+11	1		bool	__clearAccessCache	true
+12	1		bool	__createAccount	true
+13	1		bool	__getPersonalInfoWithPrivateData	true
+14	1		bool	__updatePersonalInfo	true
+15	1		bool	__createGroup	true
+16	1		bool	__updateGroup	true
+17	1		bool	__deleteGroup	true
+18	1		bool	__addPersonToGroup	true
+19	1		bool	__removePersonFromGroup	true
+\.
+
+
+--
+-- Data for Name: person; Type: TABLE DATA; Schema: public; Owner: frey
+--
+
+COPY public.person (id, email, auth_hash, auth_reset_token, auth_salt, title, phone, city, tenhou_id, disabled) FROM stdin;
+1	admin@pantheon.mahjong	$2y$10$4/U/e5OgyT0ckyVsxZx5Te/ey3WAziRAXdK2.SiPf7Xf5GGcAtvLS	\N	a0b7b82bedf1176f41fe42191d1e934b7a8c260c	Administrator		\N	\N	0
+\.
+
+
+--
+-- Data for Name: person_access; Type: TABLE DATA; Schema: public; Owner: frey
+--
+
+COPY public.person_access (id, person_id, event_ids, acl_type, acl_name, acl_value) FROM stdin;
+1	1		bool	__isSuperAdmin	true
+2	1		bool	__getPersonAccess	true
+3	1		bool	__getGroupAccess	true
+4	1		bool	__addRuleForPerson	true
+5	1		bool	__addRuleForGroup	true
+6	1		bool	__addSystemWideRuleForPerson	true
+7	1		bool	__addSystemWideRuleForGroup	true
+8	1		bool	__updateRuleForPerson	true
+9	1		bool	__updateRuleForGroup	true
+10	1		bool	__deleteRuleForPerson	true
+11	1		bool	__deleteRuleForGroup	true
+12	1		bool	__clearAccessCache	true
+13	1		bool	__createAccount	true
+14	1		bool	__getPersonalInfoWithPrivateData	true
+15	1		bool	__updatePersonalInfo	true
+16	1		bool	__createGroup	true
+17	1		bool	__updateGroup	true
+18	1		bool	__deleteGroup	true
+19	1		bool	__addPersonToGroup	true
+20	1		bool	__removePersonFromGroup	true
+\.
+
+
+--
+-- Data for Name: person_group; Type: TABLE DATA; Schema: public; Owner: frey
+--
+
+COPY public.person_group (id, person_id, group_id, "order") FROM stdin;
+\.
+
+
+--
+-- Data for Name: phinxlog; Type: TABLE DATA; Schema: public; Owner: frey
+--
+
+COPY public.phinxlog (version, migration_name, start_time, end_time, breakpoint) FROM stdin;
+20180318160552	InitFreyVersion1m0	2019-09-12 16:13:04	2019-09-12 16:13:06	f
+\.
+
+
+--
+-- Data for Name: registrant; Type: TABLE DATA; Schema: public; Owner: frey
+--
+
+COPY public.registrant (id, email, auth_hash, auth_salt, approval_code) FROM stdin;
+\.
+
+
+--
+-- Name: group_access_id_seq; Type: SEQUENCE SET; Schema: public; Owner: frey
+--
+
+SELECT pg_catalog.setval('public.group_access_id_seq', 19, true);
+
+
+--
+-- Name: group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: frey
+--
+
+SELECT pg_catalog.setval('public.group_id_seq', 1, true);
+
+
+--
+-- Name: person_access_id_seq; Type: SEQUENCE SET; Schema: public; Owner: frey
+--
+
+SELECT pg_catalog.setval('public.person_access_id_seq', 20, true);
+
+
+--
+-- Name: person_group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: frey
+--
+
+SELECT pg_catalog.setval('public.person_group_id_seq', 1, false);
+
+
+--
+-- Name: person_id_seq; Type: SEQUENCE SET; Schema: public; Owner: frey
+--
+
+SELECT pg_catalog.setval('public.person_id_seq', 1, true);
+
+
+--
+-- Name: registrant_id_seq; Type: SEQUENCE SET; Schema: public; Owner: frey
+--
+
+SELECT pg_catalog.setval('public.registrant_id_seq', 1, false);
+
+
+--
+-- Name: group_access group_access_pkey; Type: CONSTRAINT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.group_access
+    ADD CONSTRAINT group_access_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: group group_pkey; Type: CONSTRAINT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public."group"
+    ADD CONSTRAINT group_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: person_access person_access_pkey; Type: CONSTRAINT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.person_access
+    ADD CONSTRAINT person_access_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: person_group person_group_pkey; Type: CONSTRAINT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.person_group
+    ADD CONSTRAINT person_group_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: person person_pkey; Type: CONSTRAINT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.person
+    ADD CONSTRAINT person_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: phinxlog phinxlog_pkey; Type: CONSTRAINT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.phinxlog
+    ADD CONSTRAINT phinxlog_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: registrant registrant_pkey; Type: CONSTRAINT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.registrant
+    ADD CONSTRAINT registrant_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: access_acl_name_person; Type: INDEX; Schema: public; Owner: frey
+--
+
+CREATE INDEX access_acl_name_person ON public.person_access USING btree (acl_name);
+
+
+--
+-- Name: access_acl_value_group; Type: INDEX; Schema: public; Owner: frey
+--
+
+CREATE INDEX access_acl_value_group ON public.group_access USING btree (acl_value);
+
+
+--
+-- Name: access_acl_value_person; Type: INDEX; Schema: public; Owner: frey
+--
+
+CREATE INDEX access_acl_value_person ON public.person_access USING btree (acl_value);
+
+
+--
+-- Name: person_disabled; Type: INDEX; Schema: public; Owner: frey
+--
+
+CREATE INDEX person_disabled ON public.person USING btree (disabled);
+
+
+--
+-- Name: person_email; Type: INDEX; Schema: public; Owner: frey
+--
+
+CREATE INDEX person_email ON public.person USING btree (email);
+
+
+--
+-- Name: person_group_uniq; Type: INDEX; Schema: public; Owner: frey
+--
+
+CREATE UNIQUE INDEX person_group_uniq ON public.person_group USING btree (person_id, group_id);
+
+
+--
+-- Name: person_phone; Type: INDEX; Schema: public; Owner: frey
+--
+
+CREATE INDEX person_phone ON public.person USING btree (phone);
+
+
+--
+-- Name: person_tenhouid; Type: INDEX; Schema: public; Owner: frey
+--
+
+CREATE INDEX person_tenhouid ON public.person USING btree (tenhou_id);
+
+
+--
+-- Name: person_title; Type: INDEX; Schema: public; Owner: frey
+--
+
+CREATE INDEX person_title ON public.person USING btree (title);
+
+
+--
+-- Name: registrant_approval_code; Type: INDEX; Schema: public; Owner: frey
+--
+
+CREATE INDEX registrant_approval_code ON public.registrant USING btree (approval_code);
+
+
+--
+-- Name: registrant_email; Type: INDEX; Schema: public; Owner: frey
+--
+
+CREATE INDEX registrant_email ON public.registrant USING btree (email);
+
+
+--
+-- Name: group_access group_access_group_id; Type: FK CONSTRAINT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.group_access
+    ADD CONSTRAINT group_access_group_id FOREIGN KEY (group_id) REFERENCES public."group"(id);
+
+
+--
+-- Name: person_access person_access_person_id; Type: FK CONSTRAINT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.person_access
+    ADD CONSTRAINT person_access_person_id FOREIGN KEY (person_id) REFERENCES public.person(id);
+
+
+--
+-- Name: person_group person_group_group_id; Type: FK CONSTRAINT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.person_group
+    ADD CONSTRAINT person_group_group_id FOREIGN KEY (group_id) REFERENCES public."group"(id);
+
+
+--
+-- Name: person_group person_group_person_id; Type: FK CONSTRAINT; Schema: public; Owner: frey
+--
+
+ALTER TABLE ONLY public.person_group
+    ADD CONSTRAINT person_group_person_id FOREIGN KEY (person_id) REFERENCES public.person(id);
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\connect frey_unit
+
+SET default_transaction_read_only = off;
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 10.10
+-- Dumped by pg_dump version 10.10
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\connect mimir
+
+SET default_transaction_read_only = off;
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 10.10
+-- Dumped by pg_dump version 10.10
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: event; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.event (
+    id integer NOT NULL,
+    title character varying(255) NOT NULL,
+    description text NOT NULL,
+    start_time timestamp without time zone,
+    end_time timestamp without time zone,
+    game_duration integer,
+    last_timer integer,
+    red_zone integer,
+    owner_formation integer,
+    owner_player integer,
+    type character varying(255) NOT NULL,
+    stat_host character varying(255) NOT NULL,
+    lobby_id integer,
+    ruleset text NOT NULL,
+    sync_start integer NOT NULL,
+    auto_seating integer NOT NULL,
+    sort_by_games integer NOT NULL,
+    use_timer integer NOT NULL,
+    allow_player_append integer NOT NULL,
+    is_online integer NOT NULL,
+    is_textlog integer NOT NULL,
+    timezone character varying(255) NOT NULL,
+    use_penalty integer NOT NULL,
+    series_length integer DEFAULT 0 NOT NULL,
+    hide_results integer DEFAULT 0 NOT NULL,
+    games_status character varying(255),
+    sync_end integer DEFAULT 0 NOT NULL,
+    is_prescripted integer DEFAULT 0 NOT NULL,
+    min_games_count integer DEFAULT 0 NOT NULL,
+    is_team integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE public.event OWNER TO mimir;
+
+--
+-- Name: COLUMN event.game_duration; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.event.game_duration IS 'for timer, duration in seconds';
+
+
+--
+-- Name: COLUMN event.last_timer; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.event.last_timer IS 'for timer, unix datetime of last started timer';
+
+
+--
+-- Name: COLUMN event.red_zone; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.event.red_zone IS 'timer red zone amount in seconds, or null to disable red zone';
+
+
+--
+-- Name: COLUMN event.owner_formation; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.event.owner_formation IS 'at least one owner id (user or formation) should be set!';
+
+
+--
+-- Name: COLUMN event.type; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.event.type IS 'online or offline, tournament or local rating, interactive or simple';
+
+
+--
+-- Name: COLUMN event.stat_host; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.event.stat_host IS 'host of statistics frontend';
+
+
+--
+-- Name: COLUMN event.lobby_id; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.event.lobby_id IS 'tenhou lobby id for online events';
+
+
+--
+-- Name: COLUMN event.ruleset; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.event.ruleset IS 'table rules, either in JSON or as a predefined ID';
+
+
+--
+-- Name: event_enrolled_players; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.event_enrolled_players (
+    id integer NOT NULL,
+    event_id integer NOT NULL,
+    player_id integer NOT NULL,
+    reg_pin integer NOT NULL
+);
+
+
+ALTER TABLE public.event_enrolled_players OWNER TO mimir;
+
+--
+-- Name: event_enrolled_players_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.event_enrolled_players_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.event_enrolled_players_id_seq OWNER TO mimir;
+
+--
+-- Name: event_enrolled_players_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.event_enrolled_players_id_seq OWNED BY public.event_enrolled_players.id;
+
+
+--
+-- Name: event_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.event_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.event_id_seq OWNER TO mimir;
+
+--
+-- Name: event_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.event_id_seq OWNED BY public.event.id;
+
+
+--
+-- Name: event_prescript; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.event_prescript (
+    id integer NOT NULL,
+    event_id integer NOT NULL,
+    script text NOT NULL,
+    next_game integer NOT NULL
+);
+
+
+ALTER TABLE public.event_prescript OWNER TO mimir;
+
+--
+-- Name: COLUMN event_prescript.script; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.event_prescript.script IS 'predefined event seating script';
+
+
+--
+-- Name: event_prescript_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.event_prescript_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.event_prescript_id_seq OWNER TO mimir;
+
+--
+-- Name: event_prescript_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.event_prescript_id_seq OWNED BY public.event_prescript.id;
+
+
+--
+-- Name: event_registered_players; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.event_registered_players (
+    id integer NOT NULL,
+    event_id integer NOT NULL,
+    player_id integer NOT NULL,
+    auth_token character varying(48) NOT NULL,
+    local_id integer,
+    ignore_seating integer DEFAULT 0 NOT NULL,
+    team_name text
+);
+
+
+ALTER TABLE public.event_registered_players OWNER TO mimir;
+
+--
+-- Name: event_registered_players_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.event_registered_players_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.event_registered_players_id_seq OWNER TO mimir;
+
+--
+-- Name: event_registered_players_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.event_registered_players_id_seq OWNED BY public.event_registered_players.id;
+
+
+--
+-- Name: formation; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.formation (
+    id integer NOT NULL,
+    title character varying(255) NOT NULL,
+    city character varying(255) NOT NULL,
+    description text NOT NULL,
+    logo text,
+    contact_info text NOT NULL,
+    primary_owner integer NOT NULL
+);
+
+
+ALTER TABLE public.formation OWNER TO mimir;
+
+--
+-- Name: formation_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.formation_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.formation_id_seq OWNER TO mimir;
+
+--
+-- Name: formation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.formation_id_seq OWNED BY public.formation.id;
+
+
+--
+-- Name: formation_player; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.formation_player (
+    id integer NOT NULL,
+    formation_id integer NOT NULL,
+    player_id integer NOT NULL,
+    role character varying(255) NOT NULL
+);
+
+
+ALTER TABLE public.formation_player OWNER TO mimir;
+
+--
+-- Name: COLUMN formation_player.role; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.formation_player.role IS 'who is this user in this group?';
+
+
+--
+-- Name: formation_player_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.formation_player_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.formation_player_id_seq OWNER TO mimir;
+
+--
+-- Name: formation_player_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.formation_player_id_seq OWNED BY public.formation_player.id;
+
+
+--
+-- Name: phinxlog; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.phinxlog (
+    version bigint NOT NULL,
+    migration_name character varying(100),
+    start_time timestamp without time zone,
+    end_time timestamp without time zone,
+    breakpoint boolean DEFAULT false NOT NULL
+);
+
+
+ALTER TABLE public.phinxlog OWNER TO mimir;
+
+--
+-- Name: player; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.player (
+    id integer NOT NULL,
+    ident character varying(255) NOT NULL,
+    alias character varying(255),
+    display_name character varying(255) NOT NULL,
+    city character varying(255),
+    tenhou_id character varying(255),
+    is_replacement integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE public.player OWNER TO mimir;
+
+--
+-- Name: COLUMN player.ident; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.player.ident IS 'oauth ident info, for example';
+
+
+--
+-- Name: COLUMN player.alias; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.player.alias IS 'user alias for text-mode game log';
+
+
+--
+-- Name: player_history; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.player_history (
+    id integer NOT NULL,
+    player_id integer NOT NULL,
+    session_id integer NOT NULL,
+    event_id integer NOT NULL,
+    rating real NOT NULL,
+    avg_place real NOT NULL,
+    games_played integer NOT NULL
+);
+
+
+ALTER TABLE public.player_history OWNER TO mimir;
+
+--
+-- Name: player_history_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.player_history_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.player_history_id_seq OWNER TO mimir;
+
+--
+-- Name: player_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.player_history_id_seq OWNED BY public.player_history.id;
+
+
+--
+-- Name: player_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.player_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.player_id_seq OWNER TO mimir;
+
+--
+-- Name: player_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.player_id_seq OWNED BY public.player.id;
+
+
+--
+-- Name: round; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.round (
+    id integer NOT NULL,
+    session_id integer NOT NULL,
+    event_id integer NOT NULL,
+    outcome character varying(255) NOT NULL,
+    winner_id integer,
+    loser_id integer,
+    han integer,
+    fu integer,
+    round integer NOT NULL,
+    tempai character varying(255),
+    yaku character varying(255),
+    dora integer,
+    uradora integer,
+    kandora integer,
+    kanuradora integer,
+    riichi character varying(255),
+    multi_ron integer,
+    last_session_state text,
+    open_hand integer,
+    pao_player_id integer,
+    end_date timestamp without time zone,
+    nagashi character varying(255)
+);
+
+
+ALTER TABLE public.round OWNER TO mimir;
+
+--
+-- Name: COLUMN round.outcome; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.round.outcome IS 'ron, tsumo, draw, abortive draw or chombo';
+
+
+--
+-- Name: COLUMN round.winner_id; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.round.winner_id IS 'not null only on ron or tsumo';
+
+
+--
+-- Name: COLUMN round.loser_id; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.round.loser_id IS 'not null only on ron or chombo';
+
+
+--
+-- Name: COLUMN round.round; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.round.round IS '1-4 means east1-4, 5-8 means south1-4, etc';
+
+
+--
+-- Name: COLUMN round.tempai; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.round.tempai IS 'comma-separated list of tempai user ids';
+
+
+--
+-- Name: COLUMN round.yaku; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.round.yaku IS 'comma-separated yaku id list';
+
+
+--
+-- Name: COLUMN round.dora; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.round.dora IS 'dora count';
+
+
+--
+-- Name: COLUMN round.riichi; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.round.riichi IS 'comma-separated list of user ids who called riichi';
+
+
+--
+-- Name: COLUMN round.multi_ron; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.round.multi_ron IS 'double or triple ron flag to properly display results of round';
+
+
+--
+-- Name: COLUMN round.last_session_state; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.round.last_session_state IS 'session intermediate results before this round was registered';
+
+
+--
+-- Name: COLUMN round.open_hand; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.round.open_hand IS 'boolean, was winner''s hand opened or not';
+
+
+--
+-- Name: round_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.round_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.round_id_seq OWNER TO mimir;
+
+--
+-- Name: round_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.round_id_seq OWNED BY public.round.id;
+
+
+--
+-- Name: session; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.session (
+    id integer NOT NULL,
+    event_id integer NOT NULL,
+    representational_hash character varying(255),
+    replay_hash character varying(255),
+    table_index integer,
+    orig_link text,
+    start_date timestamp without time zone,
+    end_date timestamp without time zone,
+    status character varying(255),
+    intermediate_results text,
+    okr_ignore integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE public.session OWNER TO mimir;
+
+--
+-- Name: COLUMN session.representational_hash; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.session.representational_hash IS 'hash to find this game from client mobile app';
+
+
+--
+-- Name: COLUMN session.replay_hash; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.session.replay_hash IS 'tenhou game hash, for deduplication';
+
+
+--
+-- Name: COLUMN session.table_index; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.session.table_index IS 'table number in tournament';
+
+
+--
+-- Name: COLUMN session.orig_link; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.session.orig_link IS 'original tenhou game link, for access to replay';
+
+
+--
+-- Name: COLUMN session.status; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.session.status IS 'planned / inprogress / prefinished / finished';
+
+
+--
+-- Name: COLUMN session.intermediate_results; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.session.intermediate_results IS 'json-encoded results for in-progress sessions';
+
+
+--
+-- Name: session_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.session_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.session_id_seq OWNER TO mimir;
+
+--
+-- Name: session_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.session_id_seq OWNED BY public.session.id;
+
+
+--
+-- Name: session_player; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.session_player (
+    id integer NOT NULL,
+    session_id integer NOT NULL,
+    player_id integer NOT NULL,
+    "order" integer NOT NULL
+);
+
+
+ALTER TABLE public.session_player OWNER TO mimir;
+
+--
+-- Name: session_player_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.session_player_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.session_player_id_seq OWNER TO mimir;
+
+--
+-- Name: session_player_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.session_player_id_seq OWNED BY public.session_player.id;
+
+
+--
+-- Name: session_results; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.session_results (
+    id integer NOT NULL,
+    event_id integer NOT NULL,
+    session_id integer NOT NULL,
+    player_id integer NOT NULL,
+    score integer NOT NULL,
+    rating_delta real NOT NULL,
+    place integer NOT NULL
+);
+
+
+ALTER TABLE public.session_results OWNER TO mimir;
+
+--
+-- Name: COLUMN session_results.score; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.session_results.score IS 'how many points player has at the end, before any uma/oka calc';
+
+
+--
+-- Name: COLUMN session_results.rating_delta; Type: COMMENT; Schema: public; Owner: mimir
+--
+
+COMMENT ON COLUMN public.session_results.rating_delta IS 'resulting score after uma/oka and starting points subtraction';
+
+
+--
+-- Name: session_results_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.session_results_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.session_results_id_seq OWNER TO mimir;
+
+--
+-- Name: session_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.session_results_id_seq OWNED BY public.session_results.id;
+
+
+--
+-- Name: yaku; Type: TABLE; Schema: public; Owner: mimir
+--
+
+CREATE TABLE public.yaku (
+    id integer NOT NULL,
+    name character varying(255) NOT NULL
+);
+
+
+ALTER TABLE public.yaku OWNER TO mimir;
+
+--
+-- Name: yaku_id_seq; Type: SEQUENCE; Schema: public; Owner: mimir
+--
+
+CREATE SEQUENCE public.yaku_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.yaku_id_seq OWNER TO mimir;
+
+--
+-- Name: yaku_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mimir
+--
+
+ALTER SEQUENCE public.yaku_id_seq OWNED BY public.yaku.id;
+
+
+--
+-- Name: event id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event ALTER COLUMN id SET DEFAULT nextval('public.event_id_seq'::regclass);
+
+
+--
+-- Name: event_enrolled_players id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event_enrolled_players ALTER COLUMN id SET DEFAULT nextval('public.event_enrolled_players_id_seq'::regclass);
+
+
+--
+-- Name: event_prescript id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event_prescript ALTER COLUMN id SET DEFAULT nextval('public.event_prescript_id_seq'::regclass);
+
+
+--
+-- Name: event_registered_players id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event_registered_players ALTER COLUMN id SET DEFAULT nextval('public.event_registered_players_id_seq'::regclass);
+
+
+--
+-- Name: formation id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.formation ALTER COLUMN id SET DEFAULT nextval('public.formation_id_seq'::regclass);
+
+
+--
+-- Name: formation_player id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.formation_player ALTER COLUMN id SET DEFAULT nextval('public.formation_player_id_seq'::regclass);
+
+
+--
+-- Name: player id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.player ALTER COLUMN id SET DEFAULT nextval('public.player_id_seq'::regclass);
+
+
+--
+-- Name: player_history id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.player_history ALTER COLUMN id SET DEFAULT nextval('public.player_history_id_seq'::regclass);
+
+
+--
+-- Name: round id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.round ALTER COLUMN id SET DEFAULT nextval('public.round_id_seq'::regclass);
+
+
+--
+-- Name: session id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.session ALTER COLUMN id SET DEFAULT nextval('public.session_id_seq'::regclass);
+
+
+--
+-- Name: session_player id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.session_player ALTER COLUMN id SET DEFAULT nextval('public.session_player_id_seq'::regclass);
+
+
+--
+-- Name: session_results id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.session_results ALTER COLUMN id SET DEFAULT nextval('public.session_results_id_seq'::regclass);
+
+
+--
+-- Name: yaku id; Type: DEFAULT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.yaku ALTER COLUMN id SET DEFAULT nextval('public.yaku_id_seq'::regclass);
+
+
+--
+-- Data for Name: event; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.event (id, title, description, start_time, end_time, game_duration, last_timer, red_zone, owner_formation, owner_player, type, stat_host, lobby_id, ruleset, sync_start, auto_seating, sort_by_games, use_timer, allow_player_append, is_online, is_textlog, timezone, use_penalty, series_length, hide_results, games_status, sync_end, is_prescripted, min_games_count, is_team) FROM stdin;
+3	RyanPin - Hanchan Games	Hanchan Games at Club Meeting.	2019-09-12 13:22:51	\N	90	\N	\N	\N	\N	offline	gui.jesterbox.org/eid3	\N	ryanpinhan	0	0	0	0	0	0	0	Europe/Vienna	0	0	0	\N	0	0	0	0
+4	Kasu Club Games	Kasu rules	2019-09-12 14:16:38	\N	90	\N	\N	\N	\N	offline	gui.jesterbox.org/eid4	\N	kasu	0	0	0	0	0	0	0	Europe/Vienna	0	0	0	\N	0	0	0	0
+2	RyanPin - Tonpuusen Games	Tonpuusen Games at Club Meetings played with Red Fives.<br /> Uma: 30/10/-10/-30<br />Oka: 4x5k<br />Start Score: 25k<br />Target Score: 30k	2019-09-12 13:22:15	\N	90	\N	\N	\N	\N	offline	gui.jesterbox.org/eid2	\N	ryanpinton	0	0	0	0	0	0	0	Europe/Vienna	0	0	0	\N	0	0	0	0
+1	Pantheon Test Tournament	One Day Tournament to evaluate Pantheon Tournament Software EMA Rules 75min timelimit	2019-09-12 13:21:31	\N	75	1568556076	\N	\N	\N	offline_interactive_tournament	gui.jesterbox.org/eid1	\N	ema	1	0	0	1	0	0	0	Europe/Vienna	1	0	0	started	1	1	0	0
+\.
+
+
+--
+-- Data for Name: event_enrolled_players; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.event_enrolled_players (id, event_id, player_id, reg_pin) FROM stdin;
+\.
+
+
+--
+-- Data for Name: event_prescript; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.event_prescript (id, event_id, script, next_game) FROM stdin;
+2	1	2-4-5-12\n3-6-8-10\n1-7-9-11\n\n4-6-9-10\n1-2-5-8\n3-7-11-12\n\n1-5-6-7\n2-10-11-12\n3-4-8-9\n\n2-7-9-10\n3-5-6-11\n1-4-8-12	4
+\.
+
+
+--
+-- Data for Name: event_registered_players; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.event_registered_players (id, event_id, player_id, auth_token, local_id, ignore_seating, team_name) FROM stdin;
+22	1	6	ee43704f60590e98f6c42d46d450ebe6fcc086b6	1	0	
+23	1	22	be98078b229f52930fdf75d4d29852f85a00e7fe	2	0	
+24	1	7	474282167de310869d5827d2fd9ec67c73efe928	3	0	
+26	1	9	63a6af5eec5b4c2102202daf6d9f1f121df419f4	5	0	
+27	1	1	cd4a8819a5963c76547daab555449040976763a3	6	0	
+28	1	2	e9d199a6697c61d8b6cdef8e1ba9fbf1063c0e3b	7	0	
+29	1	4	ea9878b78491008a2ae9245fef81f3a4bbb9d55f	8	0	
+30	1	5	09f5c1afc0ea726e8b6a68e1041507c4d83b7d08	9	0	
+31	1	3	b2daacf7dfbec1bcb3c964dc4cbd8767bde9661e	10	0	
+32	1	21	038d9891d067ee4889f08d2f33fceadd664e47d4	11	0	
+33	1	8	cd7b24041a499bf13250906be22f3e654037612f	12	0	
+25	1	20	365f0689c2ae1231c4be987275396a9f63f0313e	4	0	
+37	2	20	b49ea57b50e99e8d9d9d2fac2509a68bb7617e35	\N	0	
+48	2	24	d58edf0b0a8bd3e2ab641f384e08c6a5a57ebf4f	\N	0	
+52	3	25	ccbf5fdb38d5cd53fb331f6f965db0cffc2e0533	\N	0	
+56	3	12	49a8d4c69f121f7fb42894d9f663a8ce80242ab6	\N	0	
+58	3	13	7bb6eb4e6a3787663fad25b9426fcd3b5b4810ea	\N	0	
+59	2	12	2426a7e00511613fe5ab1d648c952d46419d149a	\N	0	
+60	2	25	6795535008ea86ec8b6bfe782534a188a1fe8e9b	\N	0	
+61	2	13	861df8b37844379aaf15d52eec919c7377d484c9	\N	0	
+40	2	6	de5081859a3ec5939f5a7918b27d8c5821d2a0cf	\N	0	
+51	3	20	b29ec1efa33c86ad0f6483806e44341c12452b72	\N	0	
+46	3	6	3fb8858f22a36615723157584aee3baf421d6f53	\N	0	
+57	3	11	d21ab51cf5c2499ab3b6dd4ccb08ddc41e5a7492	\N	0	
+38	2	11	c4912b15a6966bc555187c9fb8ba5aa31492bb78	\N	0	
+\.
+
+
+--
+-- Data for Name: formation; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.formation (id, title, city, description, logo, contact_info, primary_owner) FROM stdin;
+\.
+
+
+--
+-- Data for Name: formation_player; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.formation_player (id, formation_id, player_id, role) FROM stdin;
+\.
+
+
+--
+-- Data for Name: phinxlog; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.phinxlog (version, migration_name, start_time, end_time, breakpoint) FROM stdin;
+20170314110552	InitVersion1m0	2019-09-12 16:12:57	2019-09-12 16:12:59	f
+20170514110552	UpdateVersion1m1	2019-09-12 16:12:59	2019-09-12 16:13:00	f
+20170526130552	UpdateVersion1m1m1	2019-09-12 16:13:00	2019-09-12 16:13:00	f
+20170608064220	AddUsePenaltyFlag	2019-09-12 16:13:00	2019-09-12 16:13:00	f
+20170623150053	AddSeriesLength	2019-09-12 16:13:00	2019-09-12 16:13:00	f
+20171008175555	UpdateVersion1m2m0	2019-09-12 16:13:00	2019-09-12 16:13:00	f
+20171018100157	AddEventFlags	2019-09-12 16:13:00	2019-09-12 16:13:00	f
+20171018214955	AddEventPendingState	2019-09-12 16:13:00	2019-09-12 16:13:00	f
+20171021140855	AddReplacementUsers	2019-09-12 16:13:00	2019-09-12 16:13:00	f
+20171028155055	AddPaoRule	2019-09-12 16:13:00	2019-09-12 16:13:00	f
+20171029023913	RoundEndDate	2019-09-12 16:13:00	2019-09-12 16:13:00	f
+20171104190857	AddEventGamesSyncEnd	2019-09-12 16:13:00	2019-09-12 16:13:01	f
+20180120222357	PrescriptedMode	2019-09-12 16:13:01	2019-09-12 16:13:01	f
+20180221222357	IgnoreGameFlag	2019-09-12 16:13:01	2019-09-12 16:13:01	f
+20180407082913	IgnoreSeatingFlag	2019-09-12 16:13:01	2019-09-12 16:13:01	f
+20180901231557	AddMinGamesCount	2019-09-12 16:13:01	2019-09-12 16:13:01	f
+20181213204757	AddNagashiIds	2019-09-12 16:13:01	2019-09-12 16:13:02	f
+20190216031435	TeamEvent	2019-09-12 16:13:02	2019-09-12 16:13:02	f
+\.
+
+
+--
+-- Data for Name: player; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.player (id, ident, alias, display_name, city, tenhou_id, is_replacement) FROM stdin;
+1	Alexander D.	Alexander D.	Alexander Doppelhofer	Baden	\N	0
+2	Birgitt R.	Birgitt R.	Birgitt Rupp	Vienna	\N	0
+3	Krisztian D.	Krisztian D.	Krisztian Deak	Vienna	\N	0
+4	Roland M.	Roland M.	Roland Maier	Vienna	\N	0
+6	Michael D.	Michael D.	Michael Dusleag	Graz	\N	0
+7	Lena W.	Lena W.	Lena Weinguny	Vienna	\N	0
+8	Yecheng L.	Yecheng L.	Yecheng Li	Vienna	\N	0
+9	Susanne S.	Susanne S.	Susanne Schwarz	Vienna	\N	0
+10	Tanja Wankmueller	Tanja W.	Tanja Wankmueller	Graz	\N	0
+11	Lucas Pfeiler	Lucas P.	Lucas Pfeiler	Graz	\N	0
+12	Justin Holmes	Justin H.	Justin Holmes	Graz	\N	0
+13	Philip Edelmayer	Philip E.	Philip Edelmayer	Graz	\N	0
+14	Player1	Player1	PlayerFull1	\N	\N	0
+15	player2	player2	Player2	\N	\N	0
+16	player3	player3	Player3	\N	\N	0
+17	Player4	Player4	Player4	\N	\N	0
+19	player1	player1	Player1	\N	\N	0
+5	Janet W.	Janet W.	Janet Wissuwa	Vienna	\N	0
+20	dhammerl	dhammerl	Dominik Hammerl	\N	\N	0
+21	hhosaka	hhosaka	Hideki Hosaka	\N	\N	0
+22	mhadolt	mhadolt	Matthias Hadolt	\N	\N	0
+23	Natalie	Natalie	Natalie	\N	\N	0
+24	Selina	Selina	Selina	\N	\N	0
+25	Patricia	Patricia	Patricia	\N	\N	0
+26	Fabio	Fabio	Fabio	\N	\N	0
+\.
+
+
+--
+-- Data for Name: player_history; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.player_history (id, player_id, session_id, event_id, rating, avg_place, games_played) FROM stdin;
+25	6	7	1	0	0	0
+26	5	7	1	0	0	0
+27	21	7	1	0	0	0
+28	2	7	1	0	0	0
+29	22	5	1	0	0	0
+30	8	5	1	0	0	0
+31	9	5	1	0	0	0
+32	20	5	1	0	0	0
+33	4	6	1	0	0	0
+34	7	6	1	0	0	0
+35	3	6	1	0	0	0
+36	1	6	1	0	0	0
+37	6	7	1	-29900	4	1
+38	5	7	1	15900	2	1
+39	21	7	1	29400	1	1
+40	2	7	1	-15400	3	1
+41	4	6	1	-37900	4	1
+42	7	6	1	8500	2	1
+43	3	6	1	-4600	3	1
+44	1	6	1	34000	1	1
+45	22	5	1	1900	2	1
+46	8	5	1	-17500	3	1
+47	9	5	1	-29300	4	1
+48	20	5	1	44900	1	1
+49	8	10	1	20600	2	2
+50	7	10	1	-9000	2.5	2
+51	21	10	1	52000	1.5	2
+52	2	10	1	-58600	3.5	2
+53	6	9	1	-34000	3.5	2
+54	9	9	1	-53000	4	2
+55	4	9	1	-30700	3	2
+56	22	9	1	22500	1.5	2
+57	3	8	1	-25900	3.5	2
+58	5	8	1	23800	2	2
+59	1	8	1	53300	1	2
+60	20	8	1	39000	2	2
+61	4	13	1	-18200	2.66666675	3
+62	5	13	1	-6100	2.66666675	3
+63	20	13	1	33300	2.33333325	3
+64	7	13	1	14100	2	3
+65	22	12	1	65400	1.33333337	3
+66	8	12	1	18600	2	3
+67	21	12	1	11200	2.33333325	3
+68	3	12	1	-46000	3.33333325	3
+69	9	11	1	-39600	3.33333325	3
+70	1	11	1	78100	1	3
+71	2	11	1	-72300	3.33333325	3
+72	6	11	1	-58500	3.66666675	3
+73	8	16	1	43400	1.75	4
+74	6	16	1	-62600	3.50000238	4
+75	4	16	1	-47000	3.00000238	4
+76	20	16	1	41400	2.24999762	4
+77	21	15	1	-30400	2.74999762	4
+78	1	15	1	77400	1.5	4
+79	9	15	1	-29100	2.99999762	4
+80	7	15	1	45900	1.75	4
+81	5	14	1	-400	2.50000238	4
+82	2	14	1	-82100	3.24999762	4
+83	3	14	1	-78600	3.49999762	4
+84	22	14	1	102100	1.2499975	4
+85	11	18	2	0	0	0
+86	11	18	2	-7900	3	1
+87	13	18	2	0	0	0
+88	13	18	2	-39600	4	1
+89	20	18	2	0	0	0
+90	20	18	2	5500	2	1
+91	6	18	2	0	0	0
+92	6	18	2	56000	1	1
+93	13	19	2	-57600	3.5	2
+94	12	19	2	0	0	0
+95	12	19	2	9200	2	1
+96	20	19	2	-38700	3	2
+97	11	19	2	50100	2	2
+98	11	20	2	105200	1.66666663	3
+99	13	20	2	-77000	3.33333325	3
+100	12	20	2	-31800	3	2
+101	20	20	2	-33400	2.66666675	3
+102	11	21	2	161200	1.5000025	4
+103	6	21	2	7600	2.5	2
+104	20	21	2	-27100	2.50000238	4
+105	13	21	2	-90900	3.24999762	4
+106	13	22	2	-114100	3.20000005	5
+107	11	22	2	222300	1.39999998	5
+108	6	22	2	14000	2.33333325	3
+109	20	22	2	-71400	2.79999995	5
+110	23	23	3	0	0	0
+111	23	23	3	4500	2	1
+112	7	23	3	0	0	0
+113	7	23	3	41800	1	1
+114	2	23	3	0	0	0
+115	2	23	3	-37800	4	1
+116	6	23	3	0	0	0
+117	6	23	3	-8500	3	1
+118	24	24	2	0	0	0
+119	24	24	2	-39600	4	1
+120	11	24	2	225700	1.5	6
+121	6	24	2	-3400	2.49999762	4
+122	20	24	2	-17800	2.5	6
+123	25	25	3	0	0	0
+124	25	25	3	-5500	3	1
+125	6	25	3	-32700	3.5	2
+126	26	25	3	0	0	0
+127	26	25	3	9700	2	1
+128	20	25	3	0	0	0
+129	20	25	3	20000	1	1
+130	12	26	3	0	0	0
+131	12	26	3	-30600	4	1
+132	11	26	3	0	0	0
+133	11	26	3	11200	2	1
+134	25	26	3	-19400	3	2
+135	6	26	3	600	2.66666675	3
+136	11	27	2	296700	1.42857146	7
+137	20	27	2	-34800	2.57142854	7
+138	6	27	2	400	2.4000001	5
+139	13	27	2	-171900	3.33333325	6
+140	6	28	2	-21400	2.5	6
+141	20	28	2	-27200	2.50000119	8
+142	11	28	2	247400	1.74999881	8
+143	25	28	2	0	0	0
+144	25	28	2	63500	1	1
+145	6	29	2	-15900	2.42857146	7
+146	20	29	2	-47800	2.55555558	9
+147	11	29	2	305100	1.66666663	9
+148	25	29	2	20900	2.5	2
+149	20	30	2	19200	2.40000391	10
+150	11	30	2	251700	1.90000296	10
+151	25	30	2	400	2.66666675	3
+152	6	30	2	-9000	2.37499881	8
+153	11	31	3	3900	2.5	2
+154	25	31	3	-12800	2.66666675	3
+155	20	31	3	-9000	2.5	2
+156	13	31	3	0	0	0
+157	13	31	3	29700	1	1
+158	6	32	3	32300	2.25000238	4
+159	20	32	3	-14700	2.66666675	3
+160	11	32	3	11800	2.33333325	3
+161	25	32	3	-46700	3.00000238	4
+\.
+
+
+--
+-- Data for Name: round; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.round (id, session_id, event_id, outcome, winner_id, loser_id, han, fu, round, tempai, yaku, dora, uradora, kandora, kanuradora, riichi, multi_ron, last_session_state, open_hand, pao_player_id, end_date, nagashi) FROM stdin;
+9	6	1	ron	7	1	3	30	1		13,27	\N	\N	\N	\N		\N	{"_scores":{"4":30000,"7":30000,"3":30000,"1":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	1	\N	2019-09-15 08:22:54	
+10	5	1	ron	20	9	4	30	1		9,8,33	1	\N	\N	\N	20	\N	{"_scores":{"22":30000,"8":30000,"9":30000,"20":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-09-15 08:25:11	
+11	7	1	tsumo	2	\N	3	40	1		13,33,36	\N	\N	\N	\N	2	\N	{"_scores":{"6":30000,"5":30000,"21":30000,"2":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-09-15 08:25:20	
+12	7	1	ron	5	2	5	\N	2		8,35,33	2	\N	\N	\N	5	\N	{"_scores":{"6":27400,"5":28700,"21":28700,"2":35200},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 08:30:45	
+13	6	1	ron	4	1	1	30	2		23	\N	\N	\N	\N	1	\N	{"_scores":{"4":30000,"7":33900,"3":30000,"1":26100},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 08:31:09	
+14	5	1	tsumo	9	\N	3	30	2		33,36	1	\N	\N	\N	8,9	\N	{"_scores":{"22":30000,"8":30000,"9":22300,"20":37700},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 08:32:58	
+15	6	1	ron	7	4	1	40	3		33	\N	\N	\N	\N	7	\N	{"_scores":{"4":32000,"7":33900,"3":30000,"1":24100},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 08:36:07	
+16	5	1	ron	20	8	1	30	3		13	\N	\N	\N	\N		\N	{"_scores":{"22":29000,"8":27000,"9":27300,"20":36700},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2019-09-15 08:36:51	
+17	7	1	ron	5	2	1	30	2		12	\N	\N	\N	\N	6	\N	{"_scores":{"6":27400,"5":40700,"21":28700,"2":23200},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 08:38:24	
+18	5	1	tsumo	20	\N	5	\N	4		9,36	3	\N	\N	\N		\N	{"_scores":{"22":29000,"8":26000,"9":27300,"20":37700},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 08:42:50	
+19	6	1	ron	4	3	5	\N	4		33	4	\N	\N	\N	4	\N	{"_scores":{"4":30700,"7":35200,"3":30000,"1":24100},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 08:43:10	
+20	7	1	tsumo	2	\N	4	30	2		9,13,33,36	\N	\N	\N	\N	2,6	\N	{"_scores":{"6":26400,"5":43500,"21":28700,"2":21400},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 08:45:05	
+21	6	1	ron	1	4	2	30	5		23	1	\N	\N	\N	4	\N	{"_scores":{"4":38700,"7":35200,"3":22000,"1":24100},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 08:49:21	
+22	7	1	tsumo	21	\N	6	\N	3		23,11,33,36	1	\N	\N	\N	5,21,6	\N	{"_scores":{"6":23200,"5":39400,"21":26500,"2":30900},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 08:54:16	
+23	5	1	draw	\N	\N	\N	\N	4	9,20		\N	\N	\N	\N	20	\N	{"_scores":{"22":25000,"8":22000,"9":23300,"20":49700},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 08:54:43	
+24	6	1	ron	1	4	2	30	6		23	1	\N	\N	\N	3	\N	{"_scores":{"4":35700,"7":35200,"3":22000,"1":27100},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 08:58:02	
+25	5	1	ron	20	9	4	25	4		31	2	\N	\N	\N		\N	{"_scores":{"22":23500,"8":20500,"9":24800,"20":50200},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":2,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-09-15 09:00:55	
+26	7	1	ron	2	5	3	50	3		13,35,33	\N	\N	\N	\N	2	\N	{"_scores":{"6":16200,"5":32400,"21":46500,"2":24900},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 09:02:31	
+27	6	1	ron	3	4	2	30	7		8,33	\N	\N	\N	\N	3	\N	{"_scores":{"4":33700,"7":35200,"3":21000,"1":30100},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 09:04:23	
+28	5	1	ron	22	8	1	30	4		13	\N	\N	\N	\N	8	\N	{"_scores":{"22":23500,"8":20500,"9":14600,"20":61400},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":3,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 09:08:21	
+29	6	1	ron	3	1	2	40	7		35,33	\N	\N	\N	\N	3	\N	{"_scores":{"4":30800,"7":35200,"3":23900,"1":30100},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 09:09:00	
+30	7	1	ron	2	5	3	30	4		12	2	\N	\N	\N		\N	{"_scores":{"6":16200,"5":25700,"21":46500,"2":31600},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 09:11:08	
+31	7	1	tsumo	5	\N	3	30	4		9,33,36	\N	\N	\N	\N	5	\N	{"_scores":{"6":16200,"5":19900,"21":46500,"2":37400},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 09:16:01	
+32	6	1	tsumo	1	\N	5	\N	7		11,33,36	1	\N	\N	\N	1	\N	{"_scores":{"4":30800,"7":35200,"3":28100,"1":25900},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 09:16:58	
+33	5	1	draw	\N	\N	\N	\N	5	22,8		\N	\N	\N	\N	22	\N	{"_scores":{"22":26400,"8":17600,"9":14600,"20":61400},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 09:20:07	
+34	7	1	ron	5	2	5	\N	5		35,33	3	\N	\N	\N	5,21	\N	{"_scores":{"6":15100,"5":24200,"21":45400,"2":35300},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 09:23:43	
+35	6	1	multiron	1	4	5	\N	8		14,27	1	\N	\N	\N	3	2	{"_scores":{"4":28600,"7":33000,"3":23900,"1":34500},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2019-09-15 09:26:34	
+36	6	1	multiron	3	4	4	40	8		33	3	\N	\N	\N		2	{"_scores":{"4":28600,"7":33000,"3":23900,"1":34500},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 09:26:34	
+37	5	1	ron	9	8	1	40	5		23	\N	\N	\N	\N		\N	{"_scores":{"22":26900,"8":19100,"9":13100,"20":59900},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"draw"}	0	\N	2019-09-15 09:29:11	
+38	7	1	ron	5	2	3	40	6		33	2	\N	\N	\N	5	\N	{"_scores":{"6":15100,"5":33200,"21":44400,"2":27300},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"ron"}	0	\N	2019-09-15 09:32:27	
+39	6	1	draw	\N	\N	\N	\N	8	1,7		\N	\N	\N	\N	7	\N	{"_scores":{"4":8600,"7":33000,"3":31900,"1":46500},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"multiron"}	0	\N	2019-09-15 09:37:18	
+40	8	1	tsumo	1	\N	3	40	1		33,36	1	\N	\N	\N	1	\N	{"_scores":{"3":30000,"5":30000,"1":30000,"20":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-09-15 09:55:23	
+41	9	1	tsumo	4	\N	7	\N	1		28	2	\N	\N	\N		\N	{"_scores":{"6":30000,"9":30000,"4":30000,"22":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	1	\N	2019-09-15 09:57:10	
+42	10	1	tsumo	21	\N	4	30	1		13,35,33,36	\N	\N	\N	\N	21	\N	{"_scores":{"8":30000,"7":30000,"21":30000,"2":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-09-15 09:57:40	
+43	10	1	ron	21	2	2	40	2		33	1	\N	\N	\N	21	\N	{"_scores":{"8":26100,"7":28000,"21":37900,"2":28000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 10:04:47	
+44	8	1	ron	20	5	2	30	2		8,33	\N	\N	\N	\N	20	\N	{"_scores":{"3":27400,"5":28700,"1":35200,"20":28700},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 10:04:52	
+45	9	1	ron	6	9	5	\N	2		28	\N	\N	\N	\N		\N	{"_scores":{"6":24000,"9":27000,"4":42000,"22":27000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2019-09-15 10:05:50	
+46	10	1	ron	8	7	1	30	3		13	\N	\N	\N	\N	2	\N	{"_scores":{"8":26100,"7":28000,"21":40500,"2":25400},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 10:11:02	
+47	9	1	ron	22	4	3	30	3		27,13	\N	\N	\N	\N		\N	{"_scores":{"6":32000,"9":19000,"4":42000,"22":27000},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 10:13:29	
+48	8	1	tsumo	5	\N	5	\N	3		35,33,36	2	\N	\N	\N	20,5	\N	{"_scores":{"3":27400,"5":26700,"1":35200,"20":30700},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 10:14:16	
+49	10	1	ron	8	2	3	40	4		33	2	\N	\N	\N	8	\N	{"_scores":{"8":28100,"7":27000,"21":40500,"2":24400},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 10:16:38	
+50	8	1	ron	20	5	3	40	4		24,14	\N	\N	\N	\N		\N	{"_scores":{"3":25400,"5":35700,"1":31200,"20":27700},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2019-09-15 10:18:48	
+51	9	1	ron	22	6	1	30	4		23	\N	\N	\N	\N	6	\N	{"_scores":{"6":32000,"9":19000,"4":38100,"22":30900},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 10:21:17	
+52	10	1	tsumo	8	\N	2	30	5		13	1	\N	\N	\N		\N	{"_scores":{"8":33300,"7":27000,"21":40500,"2":19200},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 10:23:10	
+53	8	1	ron	5	3	1	30	4		13	\N	\N	\N	\N	20	\N	{"_scores":{"3":25400,"5":28000,"1":31200,"20":35400},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 10:25:47	
+54	10	1	tsumo	8	\N	3	20	5		8,33,36	\N	\N	\N	\N	8	\N	{"_scores":{"8":36300,"7":26000,"21":39500,"2":18200},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 10:28:38	
+55	8	1	ron	5	1	1	30	5		13	\N	\N	\N	\N		\N	{"_scores":{"3":24100,"5":30300,"1":31200,"20":34400},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 10:28:51	
+56	9	1	ron	9	4	4	25	4		31,23,33	\N	\N	\N	\N	9	\N	{"_scores":{"6":29500,"9":19000,"4":38100,"22":33400},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 10:30:57	
+57	10	1	tsumo	21	\N	4	30	5		35,33,36	1	\N	\N	\N	21	\N	{"_scores":{"8":40500,"7":24600,"21":38100,"2":16800},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 10:33:00	
+58	8	1	ron	5	20	1	40	6		24	\N	\N	\N	\N		\N	{"_scores":{"3":24100,"5":31300,"1":30200,"20":34400},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 10:35:02	
+59	10	1	ron	8	21	3	30	6		8,33	1	\N	\N	\N	8,2	\N	{"_scores":{"8":36400,"7":22400,"21":46600,"2":14600},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 10:39:00	
+60	8	1	ron	3	5	2	40	6		9,33	\N	\N	\N	\N	3	\N	{"_scores":{"3":24100,"5":33300,"1":30200,"20":32400},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 10:40:43	
+61	9	1	ron	22	9	3	25	5		41,31	\N	\N	\N	\N	4	\N	{"_scores":{"6":29500,"9":25700,"4":31400,"22":33400},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 10:43:08	
+62	8	1	tsumo	1	\N	2	40	7		33,36	\N	\N	\N	\N	1	\N	{"_scores":{"3":27000,"5":30400,"1":30200,"20":32400},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 10:46:24	
+63	10	1	ron	21	7	2	40	7		13,33	\N	\N	\N	\N	7,21	\N	{"_scores":{"8":41300,"7":22400,"21":42700,"2":13600},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 10:47:10	
+64	8	1	tsumo	1	\N	2	20	7		8,36	\N	\N	\N	\N		\N	{"_scores":{"3":25700,"5":29100,"1":34100,"20":31100},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 10:51:04	
+65	10	1	ron	2	8	3	30	7		23,8,33	\N	\N	\N	\N	2	\N	{"_scores":{"8":41300,"7":17500,"21":47600,"2":13600},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 10:52:43	
+66	9	1	tsumo	6	\N	1	30	6		13	\N	\N	\N	\N	22	\N	{"_scores":{"6":29500,"9":22500,"4":30400,"22":37600},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 10:53:17	
+67	8	1	tsumo	5	\N	3	30	7		9,33,36	\N	\N	\N	\N	5	\N	{"_scores":{"3":24900,"5":28300,"1":36500,"20":30300},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 10:58:43	
+68	10	1	ron	8	2	8	\N	8		13,1,27	3	\N	\N	\N		\N	{"_scores":{"8":37100,"7":17500,"21":47600,"2":17800},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"ron"}	1	\N	2019-09-15 10:59:44	
+69	9	1	tsumo	4	\N	1	40	7		23	\N	\N	\N	\N		\N	{"_scores":{"6":31600,"9":22000,"4":30100,"22":36300},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"tsumo"}	1	\N	2019-09-15 11:01:45	
+70	11	1	ron	6	1	1	30	1		13	\N	\N	\N	\N	9	\N	{"_scores":{"9":30000,"1":30000,"2":30000,"6":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	1	\N	2019-09-15 12:29:25	
+71	13	1	ron	20	7	1	30	1		13	\N	\N	\N	\N	7	\N	{"_scores":{"4":30000,"5":30000,"20":30000,"7":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	1	\N	2019-09-15 12:30:44	
+72	12	1	draw	\N	\N	\N	\N	1	22		\N	\N	\N	\N	22	\N	{"_scores":{"22":30000,"8":30000,"21":30000,"3":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-09-15 12:30:57	
+73	12	1	ron	22	3	1	40	1		13	\N	\N	\N	\N		\N	{"_scores":{"22":32000,"8":29000,"21":29000,"3":29000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	1	\N	2019-09-15 12:36:24	
+74	13	1	ron	20	5	2	40	2		1	\N	\N	\N	\N		\N	{"_scores":{"4":30000,"5":30000,"20":32000,"7":28000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 12:37:27	
+75	11	1	ron	9	1	3	30	2		23,8,33	\N	\N	\N	\N	9	\N	{"_scores":{"9":29000,"1":29000,"2":30000,"6":32000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 12:37:36	
+76	11	1	tsumo	1	\N	5	\N	3		28	\N	\N	\N	\N		\N	{"_scores":{"9":32900,"1":25100,"2":30000,"6":32000},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 12:44:58	
+77	12	1	draw	\N	\N	\N	\N	1	21,22		\N	\N	\N	\N	22	\N	{"_scores":{"22":35300,"8":29000,"21":29000,"3":26700},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 12:45:38	
+78	13	1	draw	\N	\N	\N	\N	3	4,5		\N	\N	\N	\N	4,5	\N	{"_scores":{"4":30000,"5":27400,"20":34600,"7":28000},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 12:46:47	
+79	13	1	tsumo	4	\N	2	40	4		24,13	\N	\N	\N	\N		\N	{"_scores":{"4":30500,"5":27900,"20":33100,"7":26500},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":1,"_riichiBets":2,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	1	\N	2019-09-15 12:51:58	
+80	11	1	tsumo	9	\N	7	\N	4		8,35,33,36	3	\N	\N	\N	9	\N	{"_scores":{"9":30900,"1":33100,"2":26000,"6":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 12:52:20	
+81	12	1	ron	8	21	6	\N	1		35,23,33	3	\N	\N	\N	8	\N	{"_scores":{"22":35800,"8":27500,"21":30500,"3":25200},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":3,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-09-15 12:53:22	
+82	13	1	tsumo	7	\N	3	30	5		33,36	1	\N	\N	\N	7,20	\N	{"_scores":{"4":35500,"5":27100,"20":32300,"7":25100},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 12:59:26	
+83	12	1	tsumo	8	\N	6	\N	2		8,35,33,36	2	\N	\N	\N	8	\N	{"_scores":{"22":35800,"8":41400,"21":17600,"3":25200},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 13:00:20	
+84	11	1	tsumo	2	\N	1	30	5		23	\N	\N	\N	\N	9	\N	{"_scores":{"9":42900,"1":30100,"2":23000,"6":24000},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2019-09-15 13:00:39	
+85	12	1	ron	22	8	5	\N	2		23,31	2	\N	\N	\N		\N	{"_scores":{"22":29800,"8":59400,"21":11600,"3":19200},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 13:06:52	
+86	11	1	ron	1	2	5	\N	6		8,35,33	2	\N	\N	\N	1	\N	{"_scores":{"9":41400,"1":29800,"2":25100,"6":23700},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 13:07:48	
+87	13	1	draw	\N	\N	\N	\N	6	4		\N	\N	\N	\N	4	\N	{"_scores":{"4":33500,"5":26100,"20":30300,"7":30100},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 13:07:56	
+88	13	1	ron	7	5	4	30	7		8,33	2	\N	\N	\N	7	\N	{"_scores":{"4":35500,"5":25100,"20":29300,"7":29100},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-09-15 13:14:01	
+89	12	1	tsumo	22	\N	4	20	3		8,35,33,36	\N	\N	\N	\N	22	\N	{"_scores":{"22":38100,"8":51100,"21":11600,"3":19200},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 13:14:27	
+90	11	1	ron	1	6	1	30	6		13	\N	\N	\N	\N	6	\N	{"_scores":{"9":41400,"1":41800,"2":13100,"6":23700},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 13:14:40	
+91	13	1	ron	4	5	2	30	8		14	\N	\N	\N	\N		\N	{"_scores":{"4":35500,"5":17100,"20":29300,"7":38100},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 13:19:44	
+92	12	1	ron	21	22	2	30	4		13	1	\N	\N	\N		\N	{"_scores":{"22":43300,"8":49800,"21":9000,"3":17900},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2019-09-15 13:19:59	
+93	11	1	ron	1	9	2	40	6		24	\N	\N	\N	\N		\N	{"_scores":{"9":41400,"1":44600,"2":13100,"6":20900},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 13:22:15	
+94	12	1	tsumo	22	\N	7	\N	5		9,8,36	4	\N	\N	\N		\N	{"_scores":{"22":41300,"8":49800,"21":11000,"3":17900},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 13:29:38	
+95	11	1	ron	2	1	4	40	6		13,33	2	\N	\N	\N	2	\N	{"_scores":{"9":36900,"1":49100,"2":13100,"6":20900},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":3,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 13:32:07	
+96	11	1	tsumo	9	\N	2	20	7		8,36	\N	\N	\N	\N		\N	{"_scores":{"9":36900,"1":40200,"2":22000,"6":20900},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"ron"}	0	\N	2019-09-15 13:36:44	
+97	12	1	chombo	\N	8	\N	\N	5			\N	\N	\N	\N		\N	{"_scores":{"22":59300,"8":43800,"21":5000,"3":11900},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 13:36:51	
+98	12	1	tsumo	3	\N	3	20	5		8,33,36	\N	\N	\N	\N	3	\N	{"_scores":{"22":59300,"8":43800,"21":5000,"3":11900},"_penalties":{"8":-20000},"_extraPenaltyLog":[],"_round":5,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"chombo"}	0	\N	2019-09-15 13:45:02	
+99	16	1	ron	8	6	2	40	1		23,33	\N	\N	\N	\N	8	\N	{"_scores":{"8":30000,"6":30000,"4":30000,"20":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-09-15 14:04:33	
+100	15	1	ron	9	1	3	30	1		8,33	1	\N	\N	\N	9	\N	{"_scores":{"21":30000,"1":30000,"9":30000,"7":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-09-15 14:08:40	
+101	14	1	ron	5	2	2	50	1		41,33	\N	\N	\N	\N	5	\N	{"_scores":{"5":30000,"2":30000,"3":30000,"22":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-09-15 14:09:09	
+102	16	1	draw	\N	\N	\N	\N	1	8		\N	\N	\N	\N		\N	{"_scores":{"8":33900,"6":26100,"4":30000,"20":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 14:12:24	
+103	14	1	tsumo	22	\N	4	20	1		8,33,36	1	\N	\N	\N	22	\N	{"_scores":{"5":34800,"2":25200,"3":30000,"22":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 14:16:09	
+104	16	1	tsumo	4	\N	2	30	1		13	1	\N	\N	\N	8	\N	{"_scores":{"8":36900,"6":25100,"4":29000,"20":29000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	1	\N	2019-09-15 14:18:10	
+105	15	1	draw	\N	\N	\N	\N	2	1		\N	\N	\N	\N		\N	{"_scores":{"21":30000,"1":26100,"9":33900,"7":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 14:20:00	
+106	14	1	ron	22	2	1	30	2		13	\N	\N	\N	\N		\N	{"_scores":{"5":32100,"2":23800,"3":28600,"22":35500},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2019-09-15 14:21:29	
+107	16	1	ron	4	20	4	50	2		1,27	\N	\N	\N	\N		\N	{"_scores":{"8":34700,"6":24400,"4":32600,"20":28300},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2019-09-15 14:24:40	
+108	15	1	ron	1	9	1	40	2		33	\N	\N	\N	\N	1	\N	{"_scores":{"21":29000,"1":29100,"9":32900,"7":29000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-09-15 14:25:09	
+109	14	1	ron	2	5	4	40	3		33	3	\N	\N	\N	2	\N	{"_scores":{"5":32100,"2":22800,"3":28600,"22":36500},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 14:28:48	
+110	15	1	ron	1	9	1	30	2		13	\N	\N	\N	\N		\N	{"_scores":{"21":29000,"1":31400,"9":30600,"7":29000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 14:30:02	
+111	16	1	tsumo	8	\N	2	40	3		13	1	\N	\N	\N	20	\N	{"_scores":{"8":34700,"6":24400,"4":40600,"20":20300},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 14:32:02	
+112	16	1	ron	6	8	2	40	4		27	\N	\N	\N	\N		\N	{"_scores":{"8":38400,"6":23700,"4":39300,"20":18600},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2019-09-15 14:37:44	
+113	15	1	ron	1	21	1	30	2		23	\N	\N	\N	\N	21	\N	{"_scores":{"21":29000,"1":33500,"9":28500,"7":29000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":3,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-15 14:38:52	
+114	14	1	ron	5	2	2	40	4		13,33	\N	\N	\N	\N	5	\N	{"_scores":{"5":24100,"2":30800,"3":28600,"22":36500},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 14:39:15	
+115	16	1	tsumo	6	\N	4	30	5		33,36	2	\N	\N	\N	6	\N	{"_scores":{"8":35800,"6":26300,"4":39300,"20":18600},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 14:41:06	
+116	16	1	multiron	6	4	3	30	6		8,35,33	\N	\N	\N	\N	20,4,6	2	{"_scores":{"8":31900,"6":34200,"4":37300,"20":16600},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 14:48:05	
+117	16	1	multiron	20	4	3	40	6		33	2	\N	\N	\N		2	{"_scores":{"8":31900,"6":34200,"4":37300,"20":16600},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 14:48:05	
+118	14	1	draw	\N	\N	\N	\N	5	5		\N	\N	\N	\N	5	\N	{"_scores":{"5":26700,"2":28200,"3":28600,"22":36500},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 14:49:35	
+119	15	1	draw	\N	\N	\N	\N	2	7		\N	\N	\N	\N		\N	{"_scores":{"21":25600,"1":36900,"9":28500,"7":29000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":4,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 14:50:03	
+120	16	1	tsumo	20	\N	4	40	6		13	3	\N	\N	\N		\N	{"_scores":{"8":31900,"6":40000,"4":25300,"20":22800},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"multiron"}	1	\N	2019-09-15 14:55:18	
+121	15	1	ron	7	21	1	40	3		33	\N	\N	\N	\N	7	\N	{"_scores":{"21":24600,"1":35900,"9":27500,"7":32000},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":5,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-09-15 14:55:51	
+122	14	1	ron	22	3	3	30	5		8,35,33	\N	\N	\N	\N	3,2,5,22	\N	{"_scores":{"5":28700,"2":27200,"3":27600,"22":35500},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-09-15 14:59:44	
+123	15	1	ron	7	21	5	\N	4		31,27	\N	\N	\N	\N		\N	{"_scores":{"21":21800,"1":35900,"9":27500,"7":34800},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 14:59:47	
+124	16	1	tsumo	20	\N	5	\N	7		31,35,33,36	\N	\N	\N	\N	20	\N	{"_scores":{"8":29800,"6":35900,"4":23200,"20":31100},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 15:03:41	
+125	15	1	ron	21	1	1	40	4		33	\N	\N	\N	\N	21	\N	{"_scores":{"21":9800,"1":35900,"9":27500,"7":46800},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 15:07:16	
+126	16	1	tsumo	8	\N	6	\N	8		14,33,36	2	\N	\N	\N	8	\N	{"_scores":{"8":27800,"6":33900,"4":19200,"20":39100},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"tsumo"}	0	\N	2019-09-15 15:10:46	
+127	14	1	draw	\N	\N	\N	\N	6	5		\N	\N	\N	\N		\N	{"_scores":{"5":27700,"2":26200,"3":22400,"22":43700},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-09-15 15:11:10	
+128	15	1	ron	9	21	5	\N	5		13,33	3	\N	\N	\N	9	\N	{"_scores":{"21":11400,"1":34300,"9":27500,"7":46800},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"ron"}	0	\N	2019-09-15 15:15:25	
+129	14	1	ron	22	3	4	30	7		14	2	\N	\N	\N	3	\N	{"_scores":{"5":30700,"2":25200,"3":21400,"22":42700},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"draw"}	1	\N	2019-09-15 15:17:53	
+130	17	1	draw	\N	\N	\N	\N	1			\N	\N	\N	\N		\N	{"_scores":{"2":30000,"5":30000,"7":30000,"20":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-09-16 14:08:43	
+132	18	2	ron	6	13	2	40	1		33	1	\N	\N	\N	6	\N	{"_scores":{"11":25000,"13":25000,"20":25000,"6":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-09-26 20:16:18	
+133	18	2	tsumo	6	\N	1	30	2		13	\N	\N	\N	\N		\N	{"_scores":{"11":25000,"13":22400,"20":25000,"6":27600},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-26 20:21:14	
+134	18	2	ron	20	13	2	30	3		13	1	\N	\N	\N		\N	{"_scores":{"11":24700,"13":21900,"20":24700,"6":28700},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2019-09-26 20:29:07	
+135	18	2	tsumo	6	\N	2	30	3		23	1	\N	\N	\N	13	\N	{"_scores":{"11":24700,"13":19000,"20":27600,"6":28700},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-09-26 20:34:43	
+136	18	2	draw	\N	\N	\N	\N	4	13		\N	\N	\N	\N		\N	{"_scores":{"11":24100,"13":17400,"20":26500,"6":32000},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-09-26 20:45:08	
+137	19	2	draw	\N	\N	\N	\N	1	20		\N	\N	\N	\N	20	\N	{"_scores":{"13":25000,"12":25000,"20":25000,"11":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-10-03 17:45:04	
+138	19	2	ron	11	20	4	30	2		8,33	2	\N	\N	\N	11	\N	{"_scores":{"13":24000,"12":24000,"20":27000,"11":24000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-10-03 17:55:18	
+139	19	2	ron	12	20	3	40	3		33	2	\N	\N	\N	13,12	\N	{"_scores":{"13":24000,"12":24000,"20":19000,"11":33000},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-03 18:05:56	
+140	19	2	draw	\N	\N	\N	\N	4	20		\N	\N	\N	\N	20	\N	{"_scores":{"13":23000,"12":30200,"20":13800,"11":33000},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-03 18:20:04	
+141	20	2	draw	\N	\N	\N	\N	1	11		\N	\N	\N	\N	11	\N	{"_scores":{"11":25000,"13":25000,"12":25000,"20":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-10-03 18:39:34	
+142	20	2	tsumo	11	\N	3	20	1		8,33,36	\N	\N	\N	\N	11	\N	{"_scores":{"11":27000,"13":24000,"12":24000,"20":24000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-10-03 18:51:04	
+143	20	2	ron	20	12	2	30	1		25	\N	\N	\N	\N	11	\N	{"_scores":{"11":32200,"13":22600,"12":22600,"20":22600},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2019-10-03 19:01:16	
+144	20	2	draw	\N	\N	\N	\N	2	13,20		\N	\N	\N	\N	13,20	\N	{"_scores":{"11":31200,"13":22600,"12":20000,"20":26200},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-03 19:14:16	
+145	20	2	draw	\N	\N	\N	\N	2	12		\N	\N	\N	\N	12	\N	{"_scores":{"11":29700,"13":23100,"12":18500,"20":26700},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":1,"_riichiBets":2,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-10-03 19:25:11	
+146	20	2	draw	\N	\N	\N	\N	3	11,20		\N	\N	\N	\N	11	\N	{"_scores":{"11":28700,"13":22100,"12":20500,"20":25700},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":2,"_riichiBets":3,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-10-03 19:36:58	
+147	20	2	ron	11	20	1	30	4		13	\N	\N	\N	\N		\N	{"_scores":{"11":29200,"13":20600,"12":19000,"20":27200},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":3,"_riichiBets":4,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	1	\N	2019-10-03 19:48:16	
+148	21	2	ron	13	6	4	40	1		33	3	\N	\N	\N	13	\N	{"_scores":{"11":25000,"6":25000,"20":25000,"13":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-10-10 17:53:22	
+149	21	2	tsumo	11	\N	7	\N	2		35,33,36	4	\N	\N	\N	20,11	\N	{"_scores":{"11":25000,"6":17000,"20":25000,"13":33000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-10 18:00:38	
+150	21	2	ron	6	20	2	40	3		33	1	\N	\N	\N	6	\N	{"_scores":{"11":38000,"6":11000,"20":21000,"13":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-10-10 18:07:09	
+151	21	2	tsumo	20	\N	4	30	4		11,33,36	\N	\N	\N	\N	20	\N	{"_scores":{"11":38000,"6":13600,"20":18400,"13":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-10 18:12:40	
+153	22	2	ron	11	20	6	\N	1		8,25,33	1	\N	\N	\N	11	\N	{"_scores":{"13":25000,"11":25000,"6":25000,"20":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-10-10 18:24:32	
+154	22	2	ron	11	6	4	30	2		14,11,24	\N	\N	\N	\N	6	\N	{"_scores":{"13":25000,"11":37000,"6":25000,"20":13000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-10-10 18:30:01	
+155	22	2	ron	6	13	3	30	2		8,33	1	\N	\N	\N	6	\N	{"_scores":{"13":25000,"11":49600,"6":12400,"20":13000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-10 18:40:52	
+156	22	2	ron	6	11	4	30	3		33,8	2	\N	\N	\N	13,11,6	\N	{"_scores":{"13":20800,"11":49600,"6":16600,"20":13000},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-10 18:47:33	
+157	22	2	ron	11	6	2	30	3		23	1	\N	\N	\N		\N	{"_scores":{"13":19800,"11":37000,"6":30200,"20":13000},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-10-10 18:56:54	
+158	22	2	draw	\N	\N	\N	\N	4	20,6		\N	\N	\N	\N	6	\N	{"_scores":{"13":19800,"11":39300,"6":27900,"20":13000},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-10 19:08:24	
+159	22	2	draw	\N	\N	\N	\N	4	6,20		\N	\N	\N	\N		\N	{"_scores":{"13":18300,"11":37800,"6":28400,"20":14500},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-10-10 19:19:24	
+160	22	2	ron	20	6	2	30	4		23	1	\N	\N	\N		\N	{"_scores":{"13":16800,"11":36300,"6":29900,"20":16000},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":2,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	1	\N	2019-10-10 19:26:30	
+161	22	2	ron	11	20	3	30	4		8,33	1	\N	\N	\N	11	\N	{"_scores":{"13":16800,"11":36300,"6":26400,"20":20500},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":3,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-10 19:34:56	
+162	23	3	ron	23	2	1	40	1		33	\N	\N	\N	\N	23	\N	{"_scores":{"23":30000,"7":30000,"2":30000,"6":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-10-13 07:58:29	
+163	23	3	ron	7	2	3	40	1		23,33	1	\N	\N	\N	7	\N	{"_scores":{"23":32000,"7":30000,"2":28000,"6":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-13 08:05:06	
+164	23	3	ron	7	2	4	30	2		13	3	\N	\N	\N	2	\N	{"_scores":{"23":32000,"7":35500,"2":22500,"6":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-10-13 08:13:59	
+165	23	3	draw	\N	\N	\N	\N	2	23		\N	\N	\N	\N		\N	{"_scores":{"23":32000,"7":48100,"2":9900,"6":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-13 08:23:53	
+166	23	3	ron	7	6	2	30	3		11	1	\N	\N	\N		\N	{"_scores":{"23":35000,"7":47100,"2":8900,"6":29000},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	1	\N	2019-10-13 08:33:06	
+167	23	3	draw	\N	\N	\N	\N	4	2,6		\N	\N	\N	\N	2	\N	{"_scores":{"23":35000,"7":49700,"2":8900,"6":26400},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-13 08:42:32	
+168	23	3	ron	6	23	1	30	4		23	\N	\N	\N	\N		\N	{"_scores":{"23":33500,"7":48200,"2":9400,"6":27900},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	1	\N	2019-10-13 08:49:07	
+169	23	3	tsumo	7	\N	5	\N	4		8,33,36	2	\N	\N	\N	7	\N	{"_scores":{"23":31700,"7":48200,"2":9400,"6":30700},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-13 08:57:01	
+170	23	3	draw	\N	\N	\N	\N	5			\N	\N	\N	\N		\N	{"_scores":{"23":29500,"7":56800,"2":7200,"6":26500},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-10-17 14:36:32	
+171	23	3	draw	\N	\N	\N	\N	6			\N	\N	\N	\N		\N	{"_scores":{"23":29500,"7":56800,"2":7200,"6":26500},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-10-17 14:36:39	
+172	23	3	draw	\N	\N	\N	\N	7			\N	\N	\N	\N		\N	{"_scores":{"23":29500,"7":56800,"2":7200,"6":26500},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-10-17 14:36:45	
+173	23	3	draw	\N	\N	\N	\N	8			\N	\N	\N	\N		\N	{"_scores":{"23":29500,"7":56800,"2":7200,"6":26500},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":3,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-10-17 14:36:51	
+174	24	2	tsumo	11	\N	2	30	1		13	1	\N	\N	\N		\N	{"_scores":{"24":25000,"11":25000,"6":25000,"20":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	1	\N	2019-10-17 17:05:39	
+175	24	2	ron	11	24	1	30	2		12	\N	\N	\N	\N	20	\N	{"_scores":{"24":24000,"11":27000,"6":24500,"20":24500},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2019-10-17 17:16:00	
+176	24	2	ron	6	20	3	30	2		23	2	\N	\N	\N		\N	{"_scores":{"24":22500,"11":29500,"6":24500,"20":23500},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2019-10-17 17:36:38	
+177	24	2	draw	\N	\N	\N	\N	3	20,6,24		\N	\N	\N	\N		\N	{"_scores":{"24":22500,"11":29500,"6":28700,"20":19300},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-10-17 17:51:24	
+178	24	2	draw	\N	\N	\N	\N	3	20,11,24		\N	\N	\N	\N		\N	{"_scores":{"24":23500,"11":26500,"6":29700,"20":20300},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-10-17 18:10:54	
+179	24	2	tsumo	20	\N	4	30	4		23,33,36	1	\N	\N	\N	20	\N	{"_scores":{"24":24500,"11":27500,"6":26700,"20":21300},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-10-17 18:23:23	
+180	25	3	ron	26	25	4	30	1		8,33	2	\N	\N	\N	26	\N	{"_scores":{"25":30000,"6":30000,"26":30000,"20":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2019-12-11 21:13:01	
+181	25	3	tsumo	25	\N	3	30	2		23,33,36	\N	\N	\N	\N	25	\N	{"_scores":{"25":22300,"6":30000,"26":37700,"20":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-12-11 21:21:04	
+182	25	3	ron	25	6	3	40	3		9	2	\N	\N	\N		\N	{"_scores":{"25":26300,"6":28000,"26":36700,"20":29000},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-12-11 21:28:18	
+183	25	3	tsumo	20	\N	3	30	4		33,36	1	\N	\N	\N	20	\N	{"_scores":{"25":31500,"6":22800,"26":36700,"20":29000},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2019-12-11 21:35:14	
+184	25	3	draw	\N	\N	\N	\N	4			\N	\N	\N	\N		\N	{"_scores":{"25":29500,"6":20800,"26":34700,"20":35000},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2019-12-11 21:36:03	
+185	25	3	draw	\N	\N	\N	\N	5			\N	\N	\N	\N		\N	{"_scores":{"25":29500,"6":20800,"26":34700,"20":35000},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-12-11 21:36:08	
+186	25	3	draw	\N	\N	\N	\N	6			\N	\N	\N	\N		\N	{"_scores":{"25":29500,"6":20800,"26":34700,"20":35000},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":3,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-12-11 21:36:14	
+187	25	3	draw	\N	\N	\N	\N	7			\N	\N	\N	\N		\N	{"_scores":{"25":29500,"6":20800,"26":34700,"20":35000},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":4,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-12-11 21:36:20	
+188	25	3	draw	\N	\N	\N	\N	8			\N	\N	\N	\N		\N	{"_scores":{"25":29500,"6":20800,"26":34700,"20":35000},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":5,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2019-12-11 21:36:28	
+189	26	3	tsumo	6	\N	2	30	1		23	1	\N	\N	\N		\N	{"_scores":{"12":30000,"11":30000,"25":30000,"6":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	1	\N	2020-03-04 18:05:33	
+190	26	3	ron	6	12	3	30	2		23	2	\N	\N	\N		\N	{"_scores":{"12":29000,"11":29500,"25":29500,"6":32000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2020-03-04 18:16:36	
+191	26	3	ron	11	25	3	25	3		31,33	\N	\N	\N	\N	11	\N	{"_scores":{"12":25100,"11":29500,"25":29500,"6":35900},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-03-04 18:27:28	
+192	26	3	tsumo	25	\N	2	30	4		13	1	\N	\N	\N	11,6	\N	{"_scores":{"12":25100,"11":32700,"25":26300,"6":35900},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2020-03-04 18:40:23	
+193	26	3	ron	12	25	1	40	5		33	\N	\N	\N	\N	12	\N	{"_scores":{"12":24600,"11":31200,"25":30300,"6":33900},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2020-03-04 18:52:03	
+194	26	3	tsumo	11	\N	3	30	5		35,33,36	\N	\N	\N	\N	11	\N	{"_scores":{"12":26600,"11":31200,"25":28300,"6":33900},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-03-04 19:01:06	
+195	26	3	tsumo	11	\N	5	\N	6		8,33,36	2	\N	\N	\N	11	\N	{"_scores":{"12":24500,"11":35500,"25":27200,"6":32800},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2020-03-04 19:10:51	
+196	26	3	ron	6	11	3	30	6		8,33	1	\N	\N	\N	25,6	\N	{"_scores":{"12":20500,"11":47500,"25":23200,"6":28800},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2020-03-04 19:22:09	
+197	26	3	tsumo	25	\N	2	30	7		36,13	\N	\N	\N	\N	11	\N	{"_scores":{"12":20500,"11":43300,"25":22200,"6":34000},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-03-04 19:32:47	
+198	26	3	tsumo	6	\N	8	\N	7		11,23,8,33,36	2	\N	\N	\N	6	\N	{"_scores":{"12":19500,"11":41300,"25":26200,"6":33000},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2020-03-04 19:41:11	
+199	26	3	draw	\N	\N	\N	\N	8	25		\N	\N	\N	\N		\N	{"_scores":{"12":15400,"11":37200,"25":18100,"6":49300},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2020-03-04 19:53:55	
+200	27	2	tsumo	11	\N	5	\N	1		8,33,36	2	\N	\N	\N	11	\N	{"_scores":{"11":25000,"20":25000,"6":25000,"13":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2020-07-23 16:18:14	
+201	27	2	tsumo	11	\N	4	20	1		8,35,33,36	\N	\N	\N	\N	11,6	\N	{"_scores":{"11":37000,"20":21000,"6":21000,"13":21000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2020-07-23 16:25:03	
+202	27	2	tsumo	6	\N	4	30	1		33,36	2	\N	\N	\N	6	\N	{"_scores":{"11":46100,"20":18300,"6":17300,"13":18300},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2020-07-23 16:33:01	
+203	27	2	ron	11	13	4	50	2		1,14	\N	\N	\N	\N	13	\N	{"_scores":{"11":42000,"20":16100,"6":25800,"13":16100},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2020-07-23 16:41:55	
+204	27	2	ron	11	20	1	30	3		8	\N	\N	\N	\N	20	\N	{"_scores":{"11":51000,"20":16100,"6":25800,"13":7100},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-07-23 16:48:28	
+205	27	2	tsumo	20	\N	4	30	4		23	3	\N	\N	\N	13	\N	{"_scores":{"11":53000,"20":14100,"6":25800,"13":7100},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2020-07-23 17:01:25	
+206	28	2	ron	20	6	3	40	1		13,33	1	\N	\N	\N	11,20	\N	{"_scores":{"6":25000,"20":25000,"11":25000,"25":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2020-08-11 14:42:56	
+207	28	2	draw	\N	\N	\N	\N	2	6,25		\N	\N	\N	\N	6	\N	{"_scores":{"6":19800,"20":31200,"11":24000,"25":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-08-11 14:52:53	
+208	28	2	tsumo	25	\N	5	\N	3		11,33,36	1	\N	\N	\N	25	\N	{"_scores":{"6":20300,"20":29700,"11":22500,"25":26500},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2020-08-11 15:02:55	
+209	28	2	ron	25	11	3	40	4		13	2	\N	\N	\N		\N	{"_scores":{"6":18200,"20":27600,"11":18400,"25":35800},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2020-08-11 15:10:16	
+210	29	2	ron	11	25	3	30	1		8,33	1	\N	\N	\N	11	\N	{"_scores":{"6":25000,"20":25000,"11":25000,"25":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2020-08-11 15:16:14	
+211	29	2	draw	\N	\N	\N	\N	2	6,25,20		\N	\N	\N	\N	6	\N	{"_scores":{"6":25000,"20":25000,"11":28900,"25":21100},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-08-11 15:25:52	
+212	29	2	tsumo	11	\N	4	30	2		33,36	2	\N	\N	\N	11	\N	{"_scores":{"6":25000,"20":26000,"11":25900,"25":22100},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2020-08-11 15:34:16	
+213	29	2	ron	6	25	2	40	3		13	1	\N	\N	\N		\N	{"_scores":{"6":22900,"20":22000,"11":35100,"25":20000},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2020-08-11 15:44:30	
+214	29	2	ron	11	20	2	40	4		23	1	\N	\N	\N		\N	{"_scores":{"6":25500,"20":22000,"11":35100,"25":17400},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2020-08-11 15:51:37	
+215	30	2	ron	20	25	3	40	1		13,33	1	\N	\N	\N	20,11	\N	{"_scores":{"20":25000,"11":25000,"25":25000,"6":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2020-08-11 16:04:42	
+216	30	2	ron	20	11	4	30	1		15	1	\N	\N	\N		\N	{"_scores":{"20":33700,"11":24000,"25":17300,"6":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2020-08-11 16:09:42	
+217	30	2	ron	25	20	2	40	1		13	1	\N	\N	\N		\N	{"_scores":{"20":45600,"11":12100,"25":17300,"6":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":2,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2020-08-11 16:21:03	
+218	30	2	ron	20	11	1	40	2		33	\N	\N	\N	\N	20,11	\N	{"_scores":{"20":42400,"11":12100,"25":20500,"6":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-08-11 16:30:16	
+219	30	2	ron	11	6	2	40	3		33	1	\N	\N	\N	11,25	\N	{"_scores":{"20":44700,"11":9800,"25":20500,"6":25000},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-08-11 16:36:54	
+220	30	2	ron	6	11	3	30	4		23	2	\N	\N	\N	11	\N	{"_scores":{"20":44700,"11":13400,"25":19500,"6":22400},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2020-08-11 16:44:45	
+221	30	2	ron	20	6	2	30	4		13	1	\N	\N	\N		\N	{"_scores":{"20":44700,"11":6600,"25":19500,"6":29200},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2020-08-11 16:53:23	
+222	31	3	ron	13	25	2	30	1		13	1	\N	\N	\N		\N	{"_scores":{"11":30000,"25":30000,"20":30000,"13":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	1	\N	2020-08-11 17:07:35	
+223	31	3	tsumo	25	\N	3	40	2		13	2	\N	\N	\N		\N	{"_scores":{"11":30000,"25":28000,"20":30000,"13":32000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2020-08-11 17:16:16	
+224	31	3	draw	\N	\N	\N	\N	2	25,20		\N	\N	\N	\N	25	\N	{"_scores":{"11":27400,"25":35800,"20":27400,"13":29400},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2020-08-11 17:24:58	
+225	31	3	draw	\N	\N	\N	\N	2	20,13		\N	\N	\N	\N		\N	{"_scores":{"11":25900,"25":36300,"20":28900,"13":27900},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":2,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2020-08-11 17:35:10	
+226	31	3	ron	13	25	2	50	3		13,33	\N	\N	\N	\N	13	\N	{"_scores":{"11":24400,"25":34800,"20":30400,"13":29400},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":3,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2020-08-11 17:44:07	
+227	31	3	ron	25	20	1	30	4		13	\N	\N	\N	\N		\N	{"_scores":{"11":24400,"25":30700,"20":30400,"13":34500},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2020-08-11 17:48:27	
+228	31	3	draw	\N	\N	\N	\N	5	25,13		\N	\N	\N	\N	25,13	\N	{"_scores":{"11":24400,"25":31700,"20":29400,"13":34500},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-08-11 17:59:02	
+229	31	3	ron	13	20	4	40	6		33	3	\N	\N	\N	13	\N	{"_scores":{"11":22900,"25":32200,"20":27900,"13":35000},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":1,"_riichiBets":2,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2020-08-11 18:07:07	
+230	31	3	draw	\N	\N	\N	\N	7	11,20		\N	\N	\N	\N	11	\N	{"_scores":{"11":22900,"25":32200,"20":19600,"13":45300},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-08-11 18:15:16	
+231	31	3	ron	11	20	3	30	7		8,33	1	\N	\N	\N	11	\N	{"_scores":{"11":23400,"25":30700,"20":21100,"13":43800},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2020-08-11 18:24:23	
+232	31	3	tsumo	13	\N	1	30	8		13	\N	\N	\N	\N		\N	{"_scores":{"11":28600,"25":30700,"20":16900,"13":43800},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2020-08-11 18:30:09	
+233	31	3	tsumo	25	\N	1	30	8		13	\N	\N	\N	\N		\N	{"_scores":{"11":28100,"25":30200,"20":16400,"13":45300},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2020-08-11 18:36:32	
+234	32	3	draw	\N	\N	\N	\N	1	20,11		\N	\N	\N	\N	20,11	\N	{"_scores":{"6":30000,"20":30000,"11":30000,"25":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0	\N	2020-08-13 17:35:03	
+235	32	3	tsumo	11	\N	3	30	2		33,36	1	\N	\N	\N	11	\N	{"_scores":{"6":28500,"20":30500,"11":30500,"25":28500},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":1,"_riichiBets":2,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0	\N	2020-08-13 17:41:59	
+236	32	3	ron	20	11	3	30	3		13	2	\N	\N	\N		\N	{"_scores":{"6":27400,"20":28400,"11":36800,"25":27400},"_penalties":[],"_extraPenaltyLog":[],"_round":3,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2020-08-13 17:47:36	
+237	32	3	ron	25	6	2	40	4		9,33	\N	\N	\N	\N	25	\N	{"_scores":{"6":27400,"20":32300,"11":32900,"25":27400},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-08-13 17:54:07	
+238	32	3	tsumo	20	\N	7	\N	4		12,28	1	\N	\N	\N		\N	{"_scores":{"6":23500,"20":32300,"11":32900,"25":31300},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	1	\N	2020-08-13 18:02:05	
+239	32	3	ron	11	20	4	30	5		23	3	\N	\N	\N		\N	{"_scores":{"6":20400,"20":44600,"11":29800,"25":25200},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	1	\N	2020-08-13 18:07:37	
+240	32	3	tsumo	6	\N	7	\N	6		35,33,36	4	\N	\N	\N	6	\N	{"_scores":{"6":20400,"20":36900,"11":37500,"25":25200},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-08-13 18:13:25	
+241	32	3	ron	6	25	7	\N	7		11,23,8	3	\N	\N	\N		\N	{"_scores":{"6":32400,"20":30900,"11":34500,"25":22200},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0	\N	2020-08-13 18:31:48	
+242	32	3	draw	\N	\N	\N	\N	8	25		\N	\N	\N	\N	25	\N	{"_scores":{"6":44400,"20":30900,"11":34500,"25":10200},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0	\N	2020-08-13 18:41:51	
+243	32	3	tsumo	6	\N	2	30	8		13	1	\N	\N	\N		\N	{"_scores":{"6":43400,"20":29900,"11":33500,"25":12200},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	1	\N	2020-08-14 08:02:10	
+\.
+
+
+--
+-- Data for Name: session; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.session (id, event_id, representational_hash, replay_hash, table_index, orig_link, start_date, end_date, status, intermediate_results, okr_ignore) FROM stdin;
+7	1	286b8bffe053590984dbada7f2f1cc066dd23713	\N	3	\N	2019-09-15 08:17:20	2019-09-15 09:32:27	finished	{"_scores":{"6":15100,"5":40900,"21":44400,"2":19600},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":1,"_riichiBets":0,"_prematurelyFinished":true,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"ron"}	0
+6	1	8ec3c778a5031cfde448d67af08f7a3396abc0f3	\N	2	\N	2019-09-15 08:17:20	2019-09-15 09:37:18	finished	{"_scores":{"4":7100,"7":33500,"3":30400,"1":48000},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":2,"_riichiBets":1,"_prematurelyFinished":true,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"draw"}	0
+5	1	c3947847e51933d5319ed9966d9639dfa088d8c4	\N	1	\N	2019-09-15 08:17:20	2019-09-15 09:29:11	finished	{"_scores":{"22":26900,"8":17500,"9":15700,"20":59900},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":true,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"ron"}	0
+20	2	7d18a02b543645aa3385e9d65dc1e7ff4367831e	\N	\N	\N	2019-10-03 18:28:35	2019-10-03 19:48:16	finished	{"_scores":{"11":35100,"13":20600,"12":19000,"20":25300},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0
+13	1	970544b4c05900ad1aa442d7bb1db3bd5421b742	\N	3	\N	2019-09-15 12:21:06	2019-09-15 13:19:44	finished	{"_scores":{"4":37500,"5":15100,"20":29300,"7":38100},"_penalties":[],"_extraPenaltyLog":[],"_round":9,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0
+10	1	03d46080c2831d4b7615a95739c4f9dd80138b6e	\N	3	\N	2019-09-15 09:49:01	2019-09-15 10:59:44	finished	{"_scores":{"8":53100,"7":17500,"21":47600,"2":1800},"_penalties":[],"_extraPenaltyLog":[],"_round":9,"_honba":0,"_riichiBets":0,"_prematurelyFinished":true,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"ron"}	0
+9	1	ddfa474cdb3f14007d2447a3b3d74d1d3f880199	\N	2	\N	2019-09-15 09:49:01	2019-09-15 11:01:45	finished	{"_scores":{"6":30900,"9":21300,"4":32200,"22":35600},"_penalties":[],"_extraPenaltyLog":[],"_round":7,"_honba":1,"_riichiBets":0,"_prematurelyFinished":true,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"tsumo"}	0
+12	1	a146a3a1517b0792a1bf30c613c7ef3833bb37d5	\N	2	\N	2019-09-15 12:21:06	2019-09-15 13:45:02	finished	{"_scores":{"22":57900,"8":43000,"21":4200,"3":14900},"_penalties":{"8":-20000},"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":true,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"tsumo"}	0
+11	1	8b340b7f3da3be6c7de8f64bf740bdec4ffc6901	\N	1	\N	2019-09-15 12:21:06	2019-09-15 13:36:44	finished	{"_scores":{"9":38400,"1":39800,"2":21300,"6":20500},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":0,"_riichiBets":0,"_prematurelyFinished":true,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"tsumo"}	0
+8	1	e1cac4d10cbe2981576711c2e1a663898f786dcb	\N	1	\N	2019-09-15 09:49:01	2019-09-15 10:58:44	finished	{"_scores":{"3":23700,"5":32900,"1":34300,"20":29100},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":0,"_riichiBets":0,"_prematurelyFinished":true,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"tsumo"}	0
+14	1	eec58690552a85c986fb8b0bd4cb8e2c607b9d4b	\N	1	\N	2019-09-15 13:59:27	2019-09-15 15:17:53	finished	{"_scores":{"5":30700,"2":25200,"3":12400,"22":51700},"_penalties":[],"_extraPenaltyLog":[],"_round":8,"_honba":0,"_riichiBets":0,"_prematurelyFinished":true,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"ron"}	0
+16	1	07d3e9bdc3e9c928cfe8b667dda39ac2c4b6cf99	\N	3	\N	2019-09-15 13:59:27	2019-09-15 15:10:46	finished	{"_scores":{"8":39800,"6":30900,"4":16200,"20":33100},"_penalties":[],"_extraPenaltyLog":[],"_round":9,"_honba":0,"_riichiBets":0,"_prematurelyFinished":true,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"tsumo"}	0
+15	1	5dad206e16ff5df326153e1bcc9577f56b2cee5d	\N	2	\N	2019-09-15 13:59:27	2019-09-15 15:15:25	finished	{"_scores":{"21":3400,"1":34300,"9":35500,"7":46800},"_penalties":[],"_extraPenaltyLog":[],"_round":6,"_honba":0,"_riichiBets":0,"_prematurelyFinished":true,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"ron"}	0
+17	1	f4fd4875cbd3793ed661c1116632a4da5d2fa692	\N	\N	\N	2019-09-15 15:28:22	2019-09-16 14:08:52	inprogress	{"_scores":{"2":30000,"5":30000,"7":30000,"20":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":2,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":true,"_lastOutcome":"draw"}	0
+18	2	978f86afd60fd369f489278baedabb30948040ca	\N	\N	\N	2019-09-26 20:10:50	2019-09-26 20:45:08	finished	{"_scores":{"11":23100,"13":20400,"20":25500,"6":31000},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0
+19	2	2933a5f13ce8ec314c78d8281fd4c9980c143fdc	\N	\N	\N	2019-10-03 17:37:43	2019-10-03 18:20:04	finished	{"_scores":{"13":22000,"12":29200,"20":15800,"11":32000},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":1,"_riichiBets":1,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0
+21	2	5389b43f65cfed6a7e768363b089cdfbb1294d5b	\N	\N	\N	2019-10-10 17:37:47	2019-10-10 18:12:40	finished	{"_scores":{"11":36000,"6":11600,"20":26300,"13":26100},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0
+22	2	d5a7deca1f0a0bbf143704f9757636d6a8ea37f0	\N	\N	\N	2019-10-10 18:14:44	2019-10-10 19:34:56	finished	{"_scores":{"13":16800,"11":41100,"6":26400,"20":15700},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0
+23	3	149f1795dac0ac32db208729c9bb1489aa490ede	\N	\N	\N	2019-10-13 07:53:47	2019-10-17 14:36:51	finished	{"_scores":{"23":29500,"7":56800,"2":7200,"6":26500},"_penalties":[],"_extraPenaltyLog":[],"_round":9,"_honba":4,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0
+4	3	7c84e8e2a085cb0f24af1ac1c8cb42444ff483e7	\N	\N	\N	2019-09-15 08:07:08	\N	inprogress	{"_scores":{"17":30000,"16":30000,"19":30000,"15":30000},"_penalties":[],"_extraPenaltyLog":[],"_round":1,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":null}	0
+27	2	4897e27169c40f7ca3c3c2bc18582a27d1c8d1b9	\N	\N	\N	2020-07-23 16:12:13	2020-07-23 17:01:25	finished	{"_scores":{"11":51000,"20":23000,"6":23800,"13":2200},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0
+24	2	2222864bfa8fcb591e4c70beafece8fefde78d9a	\N	\N	\N	2019-10-17 16:55:41	2019-10-17 18:23:23	finished	{"_scores":{"24":20400,"11":23400,"6":22600,"20":33600},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":3,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0
+28	2	fb55ee36920450d54dc0cd7b5a690bcb1581db04	\N	\N	\N	2020-08-11 14:36:00	2020-08-11 15:10:16	finished	{"_scores":{"6":18200,"20":27600,"11":10700,"25":43500},"_penalties":[],"_extraPenaltyLog":[],"_round":4,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":false,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0
+30	2	5d3823688b269b73ad892061cb7a81facb5b281f	\N	\N	\N	2020-08-11 15:57:19	2020-08-11 16:53:23	finished	{"_scores":{"20":47000,"11":6600,"25":19500,"6":26900},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0
+26	3	9848c979462abf10a660ad2f3258fe22aa9657e8	\N	\N	\N	2020-03-04 17:57:44	2020-03-04 19:53:56	finished	{"_scores":{"12":14400,"11":36200,"25":21100,"6":48300},"_penalties":[],"_extraPenaltyLog":[],"_round":9,"_honba":1,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0
+31	3	e58995115f0fe2ccbef4dba569b1af0dcd951175	\N	\N	\N	2020-08-11 17:00:25	2020-08-11 18:36:32	finished	{"_scores":{"11":27700,"25":31600,"20":16000,"13":44700},"_penalties":[],"_extraPenaltyLog":[],"_round":9,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0
+25	3	f5044191d44ea8fef1b6544d108043379bb39c59	\N	\N	\N	2019-12-11 21:04:40	2019-12-11 21:36:28	finished	{"_scores":{"25":29500,"6":20800,"26":34700,"20":35000},"_penalties":[],"_extraPenaltyLog":[],"_round":9,"_honba":6,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"draw"}	0
+29	2	e78741bc246bb88efa9e6e73c14256bcdf16d629	\N	\N	\N	2020-08-11 15:12:26	2020-08-11 15:51:38	finished	{"_scores":{"6":25500,"20":19400,"11":37700,"25":17400},"_penalties":[],"_extraPenaltyLog":[],"_round":5,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"ron"}	0
+32	3	ea02b973c7d1ed611b13555c0c1b561c090a3c8b	\N	\N	\N	2020-08-13 17:26:07	2020-08-14 08:02:11	finished	{"_scores":{"6":46700,"20":29300,"11":32900,"25":11100},"_penalties":[],"_extraPenaltyLog":[],"_round":9,"_honba":0,"_riichiBets":0,"_prematurelyFinished":false,"_roundJustChanged":true,"_yellowZoneAlreadyPlayed":false,"_lastOutcome":"tsumo"}	0
+33	2	13ef7f3a8a5d8a7dd8978ab2b034a997145307e0	\N	\N	\N	2020-08-16 15:48:21	\N	inprogress		0
+\.
+
+
+--
+-- Data for Name: session_player; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.session_player (id, session_id, player_id, "order") FROM stdin;
+1017	26	12	1
+1018	26	11	2
+1019	26	25	3
+1020	26	6	4
+545	16	8	1
+546	16	6	2
+547	16	4	3
+548	16	20	4
+81	7	6	1
+82	7	5	2
+83	7	21	3
+84	7	2	4
+77	6	4	1
+78	6	7	2
+79	6	3	3
+80	6	1	4
+1189	31	11	1
+1190	31	25	2
+1191	31	20	3
+1192	31	13	4
+973	25	25	1
+974	25	6	2
+975	25	26	3
+976	25	20	4
+73	5	22	1
+74	5	8	2
+75	5	9	3
+76	5	20	4
+885	23	23	1
+886	23	7	2
+887	23	2	3
+888	23	6	4
+541	15	21	1
+542	15	1	2
+543	15	9	3
+544	15	7	4
+537	14	5	1
+538	14	2	2
+539	14	3	3
+540	14	22	4
+61	4	17	1
+62	4	16	2
+63	4	19	3
+64	4	15	4
+773	20	11	1
+774	20	13	2
+775	20	12	3
+776	20	20	4
+237	10	8	1
+238	10	7	2
+239	10	21	3
+240	10	2	4
+233	9	6	1
+234	9	9	2
+235	9	4	3
+236	9	22	4
+229	8	3	1
+230	8	5	2
+231	8	1	3
+232	8	20	4
+693	17	2	1
+694	17	5	2
+695	17	7	3
+696	17	20	4
+1245	32	6	1
+1246	32	20	2
+1247	32	11	3
+1248	32	25	4
+393	13	4	1
+394	13	5	2
+395	13	20	3
+396	13	7	4
+389	12	22	1
+390	12	8	2
+391	12	21	3
+392	12	3	4
+385	11	9	1
+386	11	1	2
+387	11	2	3
+388	11	6	4
+833	22	13	1
+834	22	11	2
+835	22	6	3
+836	22	20	4
+1125	29	6	1
+1126	29	20	2
+1127	29	11	3
+1128	29	25	4
+809	21	11	1
+810	21	6	2
+811	21	20	3
+812	21	13	4
+721	18	11	1
+722	18	13	2
+723	18	20	3
+724	18	6	4
+1069	27	11	1
+1070	27	20	2
+1071	27	6	3
+1072	27	13	4
+941	24	24	1
+942	24	11	2
+943	24	6	3
+944	24	20	4
+1293	33	11	1
+1294	33	12	2
+1295	33	6	3
+1296	33	25	4
+749	19	13	1
+750	19	12	2
+751	19	20	3
+752	19	11	4
+1101	28	6	1
+1102	28	20	2
+1103	28	11	3
+1104	28	25	4
+1153	30	20	1
+1154	30	11	2
+1155	30	25	3
+1156	30	6	4
+\.
+
+
+--
+-- Data for Name: session_results; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.session_results (id, event_id, session_id, player_id, score, rating_delta, place) FROM stdin;
+13	1	7	6	15100	-29900	4
+14	1	7	5	40900	15900	2
+15	1	7	21	44400	29400	1
+16	1	7	2	19600	-15400	3
+17	1	6	4	7100	-37900	4
+18	1	6	7	33500	8500	2
+19	1	6	3	30400	-4600	3
+20	1	6	1	49000	34000	1
+21	1	5	22	26900	1900	2
+22	1	5	8	17500	-17500	3
+23	1	5	9	15700	-29300	4
+24	1	5	20	59900	44900	1
+25	1	10	8	53100	38100	1
+26	1	10	7	17500	-17500	3
+27	1	10	21	47600	22600	2
+28	1	10	2	1800	-43200	4
+29	1	9	6	30900	-4100	3
+30	1	9	9	21300	-23700	4
+31	1	9	4	32200	7200	2
+32	1	9	22	35600	20600	1
+33	1	8	3	23700	-21300	4
+34	1	8	5	32900	7900	2
+35	1	8	1	34300	19300	1
+36	1	8	20	29100	-5900	3
+37	1	13	4	37500	12500	2
+38	1	13	5	15100	-29900	4
+39	1	13	20	29300	-5700	3
+40	1	13	7	38100	23100	1
+41	1	12	22	57900	42900	1
+42	1	12	8	43000	-2000	2
+43	1	12	21	4200	-40800	4
+44	1	12	3	14900	-20100	3
+45	1	11	9	38400	13400	2
+46	1	11	1	39800	24800	1
+47	1	11	2	21300	-13700	3
+48	1	11	6	20500	-24500	4
+49	1	16	8	39800	24800	1
+50	1	16	6	30900	-4100	3
+51	1	16	4	16200	-28800	4
+52	1	16	20	33100	8100	2
+53	1	15	21	3400	-41600	4
+54	1	15	1	34300	-700	3
+55	1	15	9	35500	10500	2
+56	1	15	7	46800	31800	1
+57	1	14	5	30700	5700	2
+58	1	14	2	25200	-9800	3
+59	1	14	3	12400	-32600	4
+60	1	14	22	51700	36700	1
+117	3	32	6	46700	31700	1
+65	2	19	13	22000	-18000	3
+66	2	19	12	29200	9200	2
+67	2	19	20	15800	-44200	4
+118	3	32	20	29300	-5700	3
+119	3	32	11	32900	7900	2
+120	3	32	25	11100	-33900	4
+68	2	19	11	33000	53000	1
+64	2	18	6	31000	51000	1
+63	2	18	20	25500	5500	2
+61	2	18	11	23100	-16900	3
+62	2	18	13	20400	-39600	4
+69	2	20	11	35100	55100	1
+70	2	20	13	20600	-19400	3
+71	2	20	12	19000	-41000	4
+72	2	20	20	25300	5300	2
+73	2	21	11	36000	56000	1
+74	2	21	6	11600	-48400	4
+75	2	21	20	26300	6300	2
+76	2	21	13	26100	-13900	3
+77	2	22	13	16800	-23200	3
+78	2	22	11	41100	61100	1
+79	2	22	6	26400	6400	2
+80	2	22	20	15700	-44300	4
+81	3	23	23	29500	4500	2
+82	3	23	7	56800	41800	1
+83	3	23	2	7200	-37800	4
+84	3	23	6	26500	-8500	3
+85	2	24	24	20400	-39600	4
+86	2	24	11	23400	3400	2
+87	2	24	6	22600	-17400	3
+88	2	24	20	33600	53600	1
+89	3	25	25	29500	-5500	3
+90	3	25	6	20800	-24200	4
+91	3	25	26	34700	9700	2
+92	3	25	20	35000	20000	1
+93	3	26	12	14400	-30600	4
+94	3	26	11	36200	11200	2
+95	3	26	25	21100	-13900	3
+96	3	26	6	48300	33300	1
+97	2	27	11	51000	71000	1
+98	2	27	20	23000	-17000	3
+99	2	27	6	23800	3800	2
+100	2	27	13	2200	-57800	4
+101	2	28	6	18200	-21800	3
+102	2	28	20	27600	7600	2
+103	2	28	11	10700	-49300	4
+104	2	28	25	43500	63500	1
+105	2	29	6	25500	5500	2
+106	2	29	20	19400	-20600	3
+107	2	29	11	37700	57700	1
+108	2	29	25	17400	-42600	4
+109	2	30	20	47000	67000	1
+110	2	30	11	6600	-53400	4
+111	2	30	25	19500	-20500	3
+112	2	30	6	26900	6900	2
+113	3	31	11	27700	-7300	3
+114	3	31	25	31600	6600	2
+115	3	31	20	16000	-29000	4
+116	3	31	13	44700	29700	1
+\.
+
+
+--
+-- Data for Name: yaku; Type: TABLE DATA; Schema: public; Owner: mimir
+--
+
+COPY public.yaku (id, name) FROM stdin;
+\.
+
+
+--
+-- Name: event_enrolled_players_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.event_enrolled_players_id_seq', 110, true);
+
+
+--
+-- Name: event_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.event_id_seq', 5, true);
+
+
+--
+-- Name: event_prescript_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.event_prescript_id_seq', 2, true);
+
+
+--
+-- Name: event_registered_players_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.event_registered_players_id_seq', 107, true);
+
+
+--
+-- Name: formation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.formation_id_seq', 1, false);
+
+
+--
+-- Name: formation_player_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.formation_player_id_seq', 1, false);
+
+
+--
+-- Name: player_history_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.player_history_id_seq', 161, true);
+
+
+--
+-- Name: player_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.player_id_seq', 26, true);
+
+
+--
+-- Name: round_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.round_id_seq', 243, true);
+
+
+--
+-- Name: session_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.session_id_seq', 33, true);
+
+
+--
+-- Name: session_player_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.session_player_id_seq', 1296, true);
+
+
+--
+-- Name: session_results_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.session_results_id_seq', 120, true);
+
+
+--
+-- Name: yaku_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mimir
+--
+
+SELECT pg_catalog.setval('public.yaku_id_seq', 1, false);
+
+
+--
+-- Name: event_enrolled_players event_enrolled_users_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event_enrolled_players
+    ADD CONSTRAINT event_enrolled_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: event event_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event
+    ADD CONSTRAINT event_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: event_prescript event_prescript_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event_prescript
+    ADD CONSTRAINT event_prescript_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: event_registered_players event_registered_users_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event_registered_players
+    ADD CONSTRAINT event_registered_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: formation formation_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.formation
+    ADD CONSTRAINT formation_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: formation_player formation_user_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.formation_player
+    ADD CONSTRAINT formation_user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: phinxlog phinxlog_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.phinxlog
+    ADD CONSTRAINT phinxlog_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: player_history player_history_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.player_history
+    ADD CONSTRAINT player_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: round round_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.round
+    ADD CONSTRAINT round_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: session session_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.session
+    ADD CONSTRAINT session_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: session_results session_results_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.session_results
+    ADD CONSTRAINT session_results_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: session_player session_user_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.session_player
+    ADD CONSTRAINT session_user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: player user_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.player
+    ADD CONSTRAINT user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: yaku yaku_pkey; Type: CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.yaku
+    ADD CONSTRAINT yaku_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: eep_pin; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX eep_pin ON public.event_enrolled_players USING btree (reg_pin);
+
+
+--
+-- Name: erp_event_player; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE UNIQUE INDEX erp_event_player ON public.event_registered_players USING btree (event_id, player_id);
+
+
+--
+-- Name: eru_auth_token; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX eru_auth_token ON public.event_registered_players USING btree (auth_token);
+
+
+--
+-- Name: event_enrolled_players_event_id_player_id; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE UNIQUE INDEX event_enrolled_players_event_id_player_id ON public.event_enrolled_players USING btree (event_id, player_id);
+
+
+--
+-- Name: event_enrolled_users_event_id_user_id; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE UNIQUE INDEX event_enrolled_users_event_id_user_id ON public.event_enrolled_players USING btree (event_id, player_id);
+
+
+--
+-- Name: event_lobby; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX event_lobby ON public.event USING btree (lobby_id);
+
+
+--
+-- Name: event_owner_formation; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX event_owner_formation ON public.event USING btree (owner_formation);
+
+
+--
+-- Name: event_registered_users_event_id_user_id; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE UNIQUE INDEX event_registered_users_event_id_user_id ON public.event_registered_players USING btree (event_id, player_id);
+
+
+--
+-- Name: registered_players_ignore; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX registered_players_ignore ON public.event_registered_players USING btree (ignore_seating);
+
+
+--
+-- Name: round_outcome; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX round_outcome ON public.round USING btree (outcome);
+
+
+--
+-- Name: session_player_session_id; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX session_player_session_id ON public.session_player USING btree (session_id);
+
+
+--
+-- Name: session_rephash; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX session_rephash ON public.session USING btree (representational_hash);
+
+
+--
+-- Name: session_replay; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX session_replay ON public.session USING btree (replay_hash);
+
+
+--
+-- Name: session_status; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX session_status ON public.session USING btree (status);
+
+
+--
+-- Name: session_table_index; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX session_table_index ON public.session USING btree (table_index);
+
+
+--
+-- Name: sp_session_player; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE UNIQUE INDEX sp_session_player ON public.session_player USING btree (session_id, player_id);
+
+
+--
+-- Name: user_alias; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX user_alias ON public.player USING btree (alias);
+
+
+--
+-- Name: user_ident; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE UNIQUE INDEX user_ident ON public.player USING btree (ident);
+
+
+--
+-- Name: user_tenhou; Type: INDEX; Schema: public; Owner: mimir
+--
+
+CREATE INDEX user_tenhou ON public.player USING btree (tenhou_id);
+
+
+--
+-- Name: event_enrolled_players event_enrolled_players_player_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event_enrolled_players
+    ADD CONSTRAINT event_enrolled_players_player_id FOREIGN KEY (player_id) REFERENCES public.player(id);
+
+
+--
+-- Name: event_enrolled_players event_enrolled_users_event_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event_enrolled_players
+    ADD CONSTRAINT event_enrolled_users_event_id FOREIGN KEY (event_id) REFERENCES public.event(id);
+
+
+--
+-- Name: event event_owner_formation; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event
+    ADD CONSTRAINT event_owner_formation FOREIGN KEY (owner_formation) REFERENCES public.formation(id);
+
+
+--
+-- Name: event event_owner_player; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event
+    ADD CONSTRAINT event_owner_player FOREIGN KEY (owner_player) REFERENCES public.player(id);
+
+
+--
+-- Name: event_prescript event_prescript_event_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event_prescript
+    ADD CONSTRAINT event_prescript_event_id FOREIGN KEY (event_id) REFERENCES public.event(id);
+
+
+--
+-- Name: event_registered_players event_registered_players_player_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event_registered_players
+    ADD CONSTRAINT event_registered_players_player_id FOREIGN KEY (player_id) REFERENCES public.player(id);
+
+
+--
+-- Name: event_registered_players event_registered_users_event_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.event_registered_players
+    ADD CONSTRAINT event_registered_users_event_id FOREIGN KEY (event_id) REFERENCES public.event(id);
+
+
+--
+-- Name: formation_player formation_player_player_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.formation_player
+    ADD CONSTRAINT formation_player_player_id FOREIGN KEY (player_id) REFERENCES public.player(id);
+
+
+--
+-- Name: formation formation_primary_owner; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.formation
+    ADD CONSTRAINT formation_primary_owner FOREIGN KEY (primary_owner) REFERENCES public.player(id);
+
+
+--
+-- Name: formation_player formation_user_formation_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.formation_player
+    ADD CONSTRAINT formation_user_formation_id FOREIGN KEY (formation_id) REFERENCES public.formation(id);
+
+
+--
+-- Name: player_history player_history_event_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.player_history
+    ADD CONSTRAINT player_history_event_id FOREIGN KEY (event_id) REFERENCES public.event(id);
+
+
+--
+-- Name: player_history player_history_player_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.player_history
+    ADD CONSTRAINT player_history_player_id FOREIGN KEY (player_id) REFERENCES public.player(id);
+
+
+--
+-- Name: player_history player_history_session_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.player_history
+    ADD CONSTRAINT player_history_session_id FOREIGN KEY (session_id) REFERENCES public.session(id);
+
+
+--
+-- Name: round round_event_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.round
+    ADD CONSTRAINT round_event_id FOREIGN KEY (event_id) REFERENCES public.event(id);
+
+
+--
+-- Name: round round_loser_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.round
+    ADD CONSTRAINT round_loser_id FOREIGN KEY (loser_id) REFERENCES public.player(id);
+
+
+--
+-- Name: round round_pao_player_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.round
+    ADD CONSTRAINT round_pao_player_id FOREIGN KEY (pao_player_id) REFERENCES public.player(id);
+
+
+--
+-- Name: round round_session_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.round
+    ADD CONSTRAINT round_session_id FOREIGN KEY (session_id) REFERENCES public.session(id);
+
+
+--
+-- Name: round round_winner_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.round
+    ADD CONSTRAINT round_winner_id FOREIGN KEY (winner_id) REFERENCES public.player(id);
+
+
+--
+-- Name: session session_event_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.session
+    ADD CONSTRAINT session_event_id FOREIGN KEY (event_id) REFERENCES public.event(id);
+
+
+--
+-- Name: session_player session_player_player_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.session_player
+    ADD CONSTRAINT session_player_player_id FOREIGN KEY (player_id) REFERENCES public.player(id);
+
+
+--
+-- Name: session_results session_results_event_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.session_results
+    ADD CONSTRAINT session_results_event_id FOREIGN KEY (event_id) REFERENCES public.event(id);
+
+
+--
+-- Name: session_results session_results_player_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.session_results
+    ADD CONSTRAINT session_results_player_id FOREIGN KEY (player_id) REFERENCES public.player(id);
+
+
+--
+-- Name: session_results session_results_session_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.session_results
+    ADD CONSTRAINT session_results_session_id FOREIGN KEY (session_id) REFERENCES public.session(id);
+
+
+--
+-- Name: session_player session_user_session_id; Type: FK CONSTRAINT; Schema: public; Owner: mimir
+--
+
+ALTER TABLE ONLY public.session_player
+    ADD CONSTRAINT session_user_session_id FOREIGN KEY (session_id) REFERENCES public.session(id);
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\connect mimir_unit
+
+SET default_transaction_read_only = off;
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 10.10
+-- Dumped by pg_dump version 10.10
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\connect postgres
+
+SET default_transaction_read_only = off;
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 10.10
+-- Dumped by pg_dump version 10.10
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: DATABASE postgres; Type: COMMENT; Schema: -; Owner: postgres
+--
+
+COMMENT ON DATABASE postgres IS 'default administrative connection database';
+
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\connect template1
+
+SET default_transaction_read_only = off;
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 10.10
+-- Dumped by pg_dump version 10.10
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: DATABASE template1; Type: COMMENT; Schema: -; Owner: postgres
+--
+
+COMMENT ON DATABASE template1 IS 'default template for new databases';
+
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+--
+-- PostgreSQL database cluster dump complete
+--
+

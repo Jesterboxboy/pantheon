@@ -38,9 +38,14 @@ if (file_exists(__DIR__ . '/local/index.php')) {
         public static function ADMIN_AUTH() {
             return [
                 // event id -> auth
-                // default cookie_life is 3600 (it will be used when cookie_life is not specified for the event)
-                100500 => ['cookie' => 'verysecretcookie', 'password' => 'verysecretpassword'],
                 100501 => ['cookie' => 'verysecretcookie', 'password' => 'verysecretpassword', 'cookie_life' => 7200],
+                100500 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666'],
+                100501 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
+                1 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
+                2 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
+                3 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
+                4 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
+                5 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
             ];
         }
 
