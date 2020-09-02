@@ -22,6 +22,9 @@ dev:
 docker: 
 	./node_modules/.bin/ng serve --publicHost m.jesterbox.org --env=docker
 
+jesterbox: 
+	./node_modules/.bin/ng serve --publicHost m.jesterbox.org --env=jesterbox
+
 PHONY: i18n_extract
 i18n_extract:
 	./node_modules/.bin/stex -s '**/*.ts' -o src/i18n/messages.pot.json

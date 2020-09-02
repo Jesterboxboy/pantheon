@@ -148,7 +148,7 @@ stop: pantheon_stop pgadmin_stop
 
 .PHONY: ngdev
 ngdev: get_docker_id
-	@docker exec -it $(RUNNING_DOCKER_ID) sh -c 'cd /var/www/html/Tyr && HOME=/home/user gosu user make docker'
+	@docker exec -it $(RUNNING_DOCKER_ID) sh -c 'cd /var/www/html/Tyr && HOME=/home/user gosu user make jesterbox'
 
 .PHONY: dev
 dev: run
