@@ -46,6 +46,8 @@ if (file_exists(__DIR__ . '/local/index.php')) {
                 3 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
                 4 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
                 5 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
+                6 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
+                7 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
             ];
         }
 

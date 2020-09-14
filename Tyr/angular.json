@@ -42,6 +42,23 @@
                 }
               ]
             },
+            "jesterbox": {
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": true,
+              "buildOptimizer": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.jesterbox.ts"
+                }
+              ]
+            },
             "docker": {
               "fileReplacements": [
                 {
@@ -61,6 +78,9 @@
           },
           "configurations": {
             "production": {
+              "browserTarget": "test-ngcli:build:production"
+            },
+            "jesterbox": {
               "browserTarget": "test-ngcli:build:production"
             },
             "docker": {

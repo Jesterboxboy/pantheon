@@ -287,19 +287,19 @@ class PointsCalc
             if ($currentDealer == $loserId) {
                 foreach ($currentScores as $playerId => $value) {
                     if ($playerId == $loserId) {
-                        $currentScores[$playerId] -= 12000;
+                        $currentScores[$playerId] -= 9000;
                     } else {
-                        $currentScores[$playerId] += 4000;
+                        $currentScores[$playerId] += 3000;
                     }
                 }
             } else {
                 foreach ($currentScores as $playerId => $value) {
                     if ($playerId == $loserId) {
-                        $currentScores[$playerId] -= 8000;
+                        $currentScores[$playerId] -= 9000;
                     } else if ($playerId == $currentDealer) {
-                        $currentScores[$playerId] += 4000;
+                        $currentScores[$playerId] += 3000;
                     } else {
-                        $currentScores[$playerId] += 2000;
+                        $currentScores[$playerId] += 3000;
                     }
                 }
             }
