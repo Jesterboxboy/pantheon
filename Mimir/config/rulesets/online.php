@@ -21,7 +21,7 @@ require_once __DIR__ . '/../../src/Ruleset.php';
 
 /**
  * Class RulesetOnline
- * Describes most popular row3-column2 tenhou rules + different results scores
+ * Describes most popular row3-column2 tenhou rules + different results scores.
  * @package Mimir
  */
 class RulesetOnline extends Ruleset
@@ -47,7 +47,7 @@ class RulesetOnline extends Ruleset
         'withKazoe'             => true,
         'withButtobi'           => false,
         'withMultiYakumans'     => true,
-        'withNagashiMangan'     => false,
+        'withNagashiMangan'     => true,
         'withKiriageMangan'     => false,
         'tonpuusen'             => false,
         'gameExpirationTime'    => 24, // hours, to cover JST difference
@@ -59,15 +59,14 @@ class RulesetOnline extends Ruleset
         'penaltyStep'           => 0,
         'maxPenalty'            => 0,
         'minPenalty'            => 0,
-        'uma' => [
-            1 => 15000,
-            2 => 5000,
-            3 => -5000,
-            4 => -15000
-        ],
-        'replacementPlayerFixedPoints' => false,
-        'replacementPlayerOverrideUma' => false
+        'replacementPlayerFixedPoints' => -30000,
+        'replacementPlayerOverrideUma' => 0
     ];
+
+    public function uma($scores = [])
+    {
+        return $this->_equalizeUma($scores, [1 => 30000, 10000, -10000, -30000]);
+    }
 
     public function allowedYaku()
     {

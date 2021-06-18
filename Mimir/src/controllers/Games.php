@@ -18,6 +18,7 @@
 namespace Mimir;
 
 require_once __DIR__ . '/../models/InteractiveSession.php';
+require_once __DIR__ . '/../models/PenaltySession.php';
 require_once __DIR__ . '/../models/TextmodeSession.php';
 require_once __DIR__ . '/../models/OnlineSession.php';
 require_once __DIR__ . '/../models/EventUserManagement.php';
@@ -78,6 +79,22 @@ class GamesController extends Controller
         $this->_log->addInfo('Dropping last round from session #' . $gameHashcode);
         $success = (new InteractiveSessionModel($this->_db, $this->_config, $this->_meta))->dropLastRound($gameHashcode);
         $this->_log->addInfo('Successfully dropped last round from session #' . $gameHashcode);
+        return $success;
+    }
+
+    /**
+     * Definalize session: drop results, set status flag to "in progress"
+     * For interactive mode (club games), and only for administrative purposes
+     *
+     * @param string $gameHashcode
+     * @throws \Exception
+     * @return boolean Success?
+     */
+    public function definalizeGame($gameHashcode)
+    {
+        $this->_log->addInfo('Definalizing session #' . $gameHashcode);
+        $success = (new InteractiveSessionModel($this->_db, $this->_config, $this->_meta))->definalizeSession($gameHashcode);
+        $this->_log->addInfo('Successfully definalized session #' . $gameHashcode);
         return $success;
     }
 
@@ -258,10 +275,29 @@ class GamesController extends Controller
      */
     public function addOnlineReplay($eventId, $link)
     {
-        $this->_log->addInfo('Saving new online game for event id# ' . $eventId);
+        $this->_log->addInfo('Saving new online game for event id# ' . $eventId . ' @ tenhou link ' . $link);
         $session = (new OnlineSessionModel($this->_db, $this->_config, $this->_meta))->addGame($eventId, $link);
         $result = (new EventFinishedGamesModel($this->_db, $this->_config, $this->_meta))->getFinishedGame($session);
-        $this->_log->addInfo('Successfully saved online game for event id# ' . $eventId);
+        $this->_log->addInfo('Successfully saved online game for event id# ' . $eventId . ' @ tenhou link ' . $link);
         return $result;
+    }
+
+    /**
+     * Add game with penalty for all players.
+     * It was added for online tournament needs. Use it on your own risk.
+     *
+     * @param int $eventId Event this session belongs to
+     * @param array $players Player id list
+     * @throws InvalidUserException
+     * @throws DatabaseException
+     * @throws \Exception
+     * @return string Hashcode of added game
+     */
+    public function addPenaltyGame($eventId, $players)
+    {
+        $this->_log->addInfo('Adding penalty game with players id# ' . implode(',', $players));
+        $gameHash = (new PenaltySessionModel($this->_db, $this->_config, $this->_meta))->addPenaltyGame($eventId, $players);
+        $this->_log->addInfo('Successfully added penalty game with players id# ' . implode(',', $players));
+        return $gameHash;
     }
 }

@@ -160,6 +160,12 @@ class SessionPrimitive extends Primitive
      */
     protected $_current;
 
+    /**
+     * chips at the end of the game per player
+     * @var array
+     */
+    protected $_chips;
+
     public function __construct(IDb $db)
     {
         parent::__construct($db);
@@ -407,7 +413,11 @@ class SessionPrimitive extends Primitive
     {
         if (empty($this->_representationalHash)) {
             // Set representation hash only if it is empty
-            $this->_representationalHash = sha1(implode(',', $this->_playersIds) . $this->_startDate);
+            // Here we rely on fact that same group of players can't start several games in the same minute.
+            $this->_representationalHash = sha1(
+                implode(',', $this->_playersIds) .
+                DateHelper::getDateWithoutSeconds($this->_startDate)
+            );
         }
         return parent::save();
     }
@@ -613,6 +623,16 @@ class SessionPrimitive extends Primitive
     }
 
     /**
+     * @deprecated Do not use this! Left as is only for testing purposes.
+     * @return string
+     */
+    public function _setRepresentationalHash($hash)
+    {
+        $this->_representationalHash = $hash;
+        return $this;
+    }
+
+    /**
      * @param string $status
      * @return $this
      */
@@ -631,6 +651,23 @@ class SessionPrimitive extends Primitive
     }
 
     /**
+     * @return $this
+     */
+    public function setChips($chips)
+    {
+        $this->_chips = $chips;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getChips()
+    {
+        return $this->_chips;
+    }
+
+    /**
      * @return SessionState
      */
     public function getCurrentState()
@@ -641,6 +678,7 @@ class SessionPrimitive extends Primitive
                 $this->getPlayersIds()
             );
         }
+        $this->_current->setChips($this->getChips());
         return $this->_current;
     }
 
@@ -774,19 +812,37 @@ class SessionPrimitive extends Primitive
     }
 
     /**
+     * Add chips bonus to final scores
+     */
+    public function updateScoresWithChipsBonus()
+    {
+        $chips = $this->getChips();
+        $state = $this->getCurrentState();
+        $scores = $state->getScores();
+        $chipsBonus = $this->getEvent()->getRuleset()->chipsValue();
+        foreach ($chips as $playerId => $chipsCount) {
+            $scores[$playerId] += $chipsCount * $chipsBonus;
+        }
+        $state->setScores($scores);
+    }
+
+    /**
      * Generate session results
      * @return bool
      */
     protected function _finalizeGame()
     {
         $sessionResults = $this->getSessionResults();
+
         return array_reduce($sessionResults, function ($acc, SessionResultsPrimitive $result) {
+            $player = $result->getPlayer();
             $playerHistoryItem = PlayerHistoryPrimitive::makeNewHistoryItem(
                 $this->_db,
-                $result->getPlayer(),
+                $player,
                 $this,
                 $result->getRatingDelta(),
-                $result->getPlace()
+                $result->getPlace(),
+                $result->getChips(),
             );
 
             // Should save the result explicitly! It's not saved inside ->getSessionResults()
@@ -845,5 +901,27 @@ class SessionPrimitive extends Primitive
         $this->_current = $round->getLastSessionState();
         $round->drop();
         $this->setStatus(SessionPrimitive::STATUS_INPROGRESS)->save();
+    }
+
+    /**
+     * Check if current session is chronologically last for all its players.
+     * @return bool
+     * @throws \Exception
+     */
+    public function isLastForPlayers()
+    {
+        $last = $this->_db->table(self::REL_USER)
+            ->whereIn('player_id', $this->getPlayersIds())
+            ->orderByDesc('id')
+            ->limit(4)
+            ->findArray();
+
+        foreach ($last as $item) {
+            if ($item['session_id'] != $this->_id) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

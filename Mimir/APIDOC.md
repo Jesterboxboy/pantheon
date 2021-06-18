@@ -122,7 +122,7 @@ Parameters:
 * **$roundData** (_array_) Structure of round data
 * **$dry** (_boolean_) Dry run (without saving to db)
 
-Returns: _bool|array_ Success|Results of dry run
+Returns: _bool|array_ Results|Results of dry run|False in case of error
 
 Exceptions:
 * _BadActionException_ 
@@ -133,7 +133,7 @@ Parameters:
 * **$eventId** (_int_) 
 * **$link** (_string_) 
 
-Returns: _bool_ 
+Returns: _array_ 
 
 Exceptions:
 * _InvalidParametersException_ 
@@ -327,7 +327,7 @@ Parameters:
 * **$eventId** (_integer_) 
 * **$ignoreSeating** (_integer_) 
 
-Returns: _void_ 
+Returns: _bool_ 
 
 Exceptions:
 * _\Exception_ 
@@ -357,12 +357,21 @@ Exceptions:
 ### getAchievements
 Parameters:
 * **$eventIdList** (_array_) 
+* **$achievementsList** (_array_) 
 
 Returns: _array_ 
 
 Exceptions:
 * _InvalidParametersException_ 
 * _\Exception_ 
+
+### getAchievementsList
+Parameters:
+
+Returns: _array_ 
+
+Exceptions:
+* _AuthFailedException_ 
 
 ### toggleHideResults
 Parameters:
@@ -378,6 +387,17 @@ Exceptions:
 Parameters:
 * **$eventId** (_integer_) 
 * **$idMap** (_array_) Mapping of player_id => local_id
+
+Returns: _bool_ 
+
+Exceptions:
+* _AuthFailedException_ 
+* _\Exception_ 
+
+### updatePlayersTeams
+Parameters:
+* **$eventId** (_integer_) 
+* **$teamNameMap** (_array_) Mapping of player_id => team_name
 
 Returns: _bool_ 
 
@@ -439,6 +459,15 @@ Returns: _boolean_ Success?
 Exceptions:
 * _\Exception_ 
 
+### definalizeGame
+Parameters:
+* **$gameHashcode** (_string_) 
+
+Returns: _boolean_ Success?
+
+Exceptions:
+* _\Exception_ 
+
 ### addPenalty
 Parameters:
 * **$eventId** (_integer_) Hashcode of game
@@ -449,6 +478,18 @@ Parameters:
 Returns: _bool_ Success?
 
 Exceptions:
+* _\Exception_ 
+
+### addPenaltyGame
+Parameters:
+* **$eventId** (_int_) Event this session belongs to
+* **$players** (_array_) Player id list
+
+Returns: _string_ Hashcode of started game
+
+Exceptions:
+* _InvalidUserException_ 
+* _DatabaseException_ 
 * _\Exception_ 
 
 ### addPlayer
@@ -472,6 +513,7 @@ Parameters:
 * **$alias** (_string_) textlog alias for quicker enter (optional)
 * **$displayName** (_string_) how to display player in stats (optional)
 * **$tenhouId** (_string_) tenhou username (optional)
+* **$isReplacement** (_bool_) flag (optional)
 
 Returns: _int_ player id
 

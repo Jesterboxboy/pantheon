@@ -38,7 +38,7 @@ class RulesetBakudan extends Ruleset
         'withAbortives'         => true,
         'withKuitan'            => true,
         'withKazoe'             => true,
-        'withButtobi'           => true,
+        'withButtobi'           => false,
         'withMultiYakumans'     => true,
         'withNagashiMangan'     => true,
         'withKiriageMangan'     => false,
@@ -51,7 +51,7 @@ class RulesetBakudan extends Ruleset
         'timerPolicy'           => 'yellowZone',
         'yellowZone'            => 900, // 15min
         'redZone'               => 0,
-        'withLeadingDealerGameOver' => true,
+        'withLeadingDealerGameOver' => false,
         'replacementPlayerFixedPoints' => -15000,
         'replacementPlayerOverrideUma' => -15000
     ];

@@ -1,6 +1,6 @@
 /*
  * Tyr - Allows online game recording in japanese (riichi) mahjong sessions
- * Copyright (C) 2016 Oleg Klimenko aka ctizen <me@ctizen.net>
+ * Copyright (C) 2016 Oleg Klimenko aka ctizen <me@ctizen.dev>
  *
  * This file is part of Tyr.
  *
@@ -26,7 +26,12 @@ import { IDB } from './services/idb';
 import { ThemeService } from './services/themes/service';
 import { Store } from './services/store';
 import { HttpClient } from '@angular/common/http';
-import { INIT_STATE, STARTUP_WITH_AUTH } from './services/store/actions/interfaces';
+import {
+  HISTORY_INIT,
+  INIT_STATE, INIT_WITH_PINCODE,
+  STARTUP_WITH_AUTH,
+  UPDATE_STATE_SETTINGS
+} from './services/store/actions/interfaces';
 import { IAppState } from './services/store/interfaces';
 
 @Component({
@@ -80,6 +85,20 @@ export class AppComponent {
       this.api.setCredentials(this.storage.get('authToken') || '');
       this.store.dispatch({ type: STARTUP_WITH_AUTH, payload: this.storage.get('authToken') || '' });
       this.storage.set('currentLanguage', localeName);
+      let loc = window.location.pathname.replace(/^\//, '');
+      if (loc.length > 0) {
+        this.store.dispatch({ type: INIT_WITH_PINCODE, payload: loc });
+      }
+      this.store.dispatch({ type: HISTORY_INIT });
+      this.store.dispatch({ type: UPDATE_STATE_SETTINGS });
     }, (error: any) => console.error(error));
+  }
+
+  get ny() {
+    const mon = (new Date()).getMonth();
+    const day = (new Date()).getDate();
+    const isYearStart = mon === 0 && day < 10;
+    const isYearEnd = mon === 11 && day > 20;
+    return isYearStart || isYearEnd;
   }
 }

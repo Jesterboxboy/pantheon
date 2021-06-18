@@ -70,6 +70,7 @@ class PlayerHistoryPrimitiveTest extends \PHPUnit\Framework\TestCase
             ->setEvent($this->_event)
             ->setPlayers($this->_players)
             ->setStatus(SessionPrimitive::STATUS_INPROGRESS)
+            ->_setRepresentationalHash('93471260812749')
             ->setReplayHash('');
         $this->_session->save();
 
@@ -77,6 +78,7 @@ class PlayerHistoryPrimitiveTest extends \PHPUnit\Framework\TestCase
             ->setEvent($this->_event)
             ->setPlayers($this->_players)
             ->setStatus(SessionPrimitive::STATUS_INPROGRESS)
+            ->_setRepresentationalHash('982737468764')
             ->setReplayHash('');
         $this->_anotherSession->save();
     }
@@ -253,7 +255,7 @@ class PlayerHistoryPrimitiveTest extends \PHPUnit\Framework\TestCase
             ->_setGamesPlayed(1)
             ->save();
 
-        $itemCopy = PlayerHistoryPrimitive::findBySession(
+        $itemCopy = PlayerHistoryPrimitive::findBySessionAndPlayer(
             $this->_db,
             $this->_players[0]->getId(),
             $this->_session->getId()
