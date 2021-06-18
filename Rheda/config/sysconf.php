@@ -38,31 +38,35 @@ if (file_exists(__DIR__ . '/local/index.php')) {
         public static function ADMIN_AUTH() {
             return [
                 // event id -> auth
-                100501 => ['cookie' => 'verysecretcookie', 'password' => 'verysecretpassword', 'cookie_life' => 7200],
-                100500 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666'],
-                100501 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
-                1 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
-                2 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
-                3 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
-                4 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
-                5 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
-                6 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
-                7 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'hcuhqi666', 'cookie_life' => 7200],
+                #100501 => ['cookie' => 'verysecretcookie', 'password' => 'verysecretpassword', 'cookie_life' => 7200],
+                #100500 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732'],
+                #100501 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
+                1 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
+                2 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
+                3 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
+                4 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
+                5 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
+                6 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
+                7 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
+                8 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
             ];
         }
 
         // Common settings
         const API_VERSION_MAJOR = 1;
         const API_VERSION_MINOR = 0;
-        const DEBUG_MODE = true; // TODO -> to false in prod!
-        const API_ADMIN_TOKEN = 'CHANGE_ME'; // TODO -> change it on prod!
+        const DEBUG_MODE = false; // TODO -> to false in prod!
+        const API_ADMIN_TOKEN = 'Lkdbakehja3234234'; // TODO -> change it on prod!
 
         public static function API_URL() {
             return getenv('MIMIR_URL');
         }
 
+        //public static function MOBILE_CLIENT_URL() {
+        //    return getenv('TYR_URL');
+        //}
         public static function MOBILE_CLIENT_URL() {
-            return getenv('TYR_URL');
+            return 'https://m.jesterbox.org';
         }
     }
 }
