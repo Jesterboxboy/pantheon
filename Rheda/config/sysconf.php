@@ -39,16 +39,16 @@ if (file_exists(__DIR__ . '/local/index.php')) {
             return [
                 // event id -> auth
                 #100501 => ['cookie' => 'verysecretcookie', 'password' => 'verysecretpassword', 'cookie_life' => 7200],
-                #100500 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732'],
-                #100501 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
-                1 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
-                2 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
-                3 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
-                4 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
-                5 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
-                6 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
-                7 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
-                8 => ['cookie' => 'asdfkljwerlkjewlrjasd', 'password' => 'A32bb732', 'cookie_life' => 7200],
+                #100500 => ['cookie' => 'verysecretcookie', 'password' => 'CHANGE_ME'],
+                #100501 => ['cookie' => 'verysecretcookie', 'password' => 'CHANGE_ME', 'cookie_life' => 7200],
+                1 => ['cookie' => 'verysecretcookie', 'password' => 'CHANGE_ME', 'cookie_life' => 7200],
+                2 => ['cookie' => 'verysecretcookie', 'password' => 'CHANGE_ME', 'cookie_life' => 7200],
+                3 => ['cookie' => 'verysecretcookie', 'password' => 'CHANGE_ME', 'cookie_life' => 7200],
+                4 => ['cookie' => 'verysecretcookie', 'password' => 'CHANGE_ME', 'cookie_life' => 7200],
+                5 => ['cookie' => 'verysecretcookie', 'password' => 'CHANGE_ME', 'cookie_life' => 7200],
+                6 => ['cookie' => 'verysecretcookie', 'password' => 'CHANGE_ME', 'cookie_life' => 7200],
+                7 => ['cookie' => 'verysecretcookie', 'password' => 'CHANGE_ME', 'cookie_life' => 7200],
+                8 => ['cookie' => 'verysecretcookie', 'password' => 'CHANGE_ME', 'cookie_life' => 7200],
             ];
         }
 
