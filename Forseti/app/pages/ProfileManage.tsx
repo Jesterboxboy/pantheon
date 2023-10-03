@@ -188,6 +188,7 @@ export const ProfileManage: React.FC = () => {
               )}
               {...form.getInputProps('title')}
             />
+            <Space h='md' />
             <TextInput
               disabled={true}
               icon={<IconNumber size='1rem' />}
