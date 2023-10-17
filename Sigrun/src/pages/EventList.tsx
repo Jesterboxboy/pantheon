@@ -41,6 +41,7 @@ import { useIsomorphicState } from '../hooks/useIsomorphicState';
 import { useApi } from '../hooks/api';
 import { useMediaQuery } from '@mantine/hooks';
 import { Meta } from '../components/Meta';
+import { TextFilter } from '../components/TextFilter';
 
 let stripHtml: (dirtyString: string) => string;
 if (import.meta.env.SSR) {
@@ -55,8 +56,11 @@ if (import.meta.env.SSR) {
 }
 
 const PERPAGE = 20;
-export const EventList: React.FC<{ params: { page?: string } }> = ({ params: { page } }) => {
+export const EventList: React.FC<{ params: { page?: string; filter?: string } }> = ({
+  params: { page, filter },
+}) => {
   page = page ?? '1';
+  filter = filter ?? '';
   const api = useApi();
   const i18n = useI18n();
   const theme = useMantineTheme();
@@ -66,9 +70,9 @@ export const EventList: React.FC<{ params: { page?: string } }> = ({ params: { p
   useEvent(null); // this resets global state
   const [events] = useIsomorphicState(
     [],
-    'EventList_events_' + page,
-    () => api.getEvents(PERPAGE, (parseInt(page ?? '1', 10) - 1) * PERPAGE, true),
-    [page]
+    `EventList_events_${page}_${filter}`,
+    () => api.getEvents(PERPAGE, (parseInt(page ?? '1', 10) - 1) * PERPAGE, filter ?? '', true),
+    [page, filter]
   );
 
   return (
@@ -79,11 +83,18 @@ export const EventList: React.FC<{ params: { page?: string } }> = ({ params: { p
       />
       <h2>{i18n._t('Riichi mahjong events list')}</h2>
       <Divider size='xs' />
+      <Space h='md' />
+      <TextFilter
+        initialValue={filter}
+        onSubmit={(v) => navigate(v === '' ? '/' : '/filter/' + v)}
+      />
+      <Space h='md' />
+      <Divider size='xs' />
       <Stack justify='flex-start' spacing='0'>
         {(events?.events ?? []).map((e, idx) => {
           const desc = useRemarkSync(e.description, {
             remarkPlugins: [strip as any],
-          });
+          }) as JSX.Element;
           const renderedDesc = stripHtml(renderToString(desc)).slice(0, 300);
           return (
             <Group
@@ -148,7 +159,7 @@ export const EventList: React.FC<{ params: { page?: string } }> = ({ params: { p
           size={largeScreen ? 'md' : 'sm'}
           value={parseInt(page, 10)}
           onChange={(p) => {
-            navigate(`/page/${p}`);
+            navigate(filter === '' ? `/page/${p}` : `/filter/${filter}/page/${p}`);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           total={Math.ceil((events?.total ?? 0) / PERPAGE)}

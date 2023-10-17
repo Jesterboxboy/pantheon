@@ -59,6 +59,7 @@ import {
   ChangePassword,
   CreateAccount,
   DeleteRuleForPerson,
+  DepersonalizeAccount,
   FindByTitle,
   GetEventAdmins,
   GetOwnedEventIds,
@@ -216,6 +217,11 @@ export class ApiService {
     );
   }
 
+  depersonalizeAccount() {
+    this._analytics?.track(Analytics.LOAD_STARTED, { method: 'DepersonalizeMyAccount' });
+    return DepersonalizeAccount({}, this._clientConfFrey);
+  }
+
   updatePersonalInfo(
     id: number,
     title: string,
@@ -256,7 +262,7 @@ export class ApiService {
 
   getEvents(limit: number, offset: number, filterUnlisted: boolean) {
     this._analytics?.track(Analytics.LOAD_STARTED, { method: 'GetEvents' });
-    return GetEvents({ limit, offset, filterUnlisted }, this._clientConfMimir);
+    return GetEvents({ limit, offset, filter: '', filterUnlisted }, this._clientConfMimir);
   }
 
   getEventsById(ids: number[]) {
