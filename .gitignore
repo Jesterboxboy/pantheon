@@ -6,6 +6,8 @@
 *.launch
 .settings/
 *.swp
+*.gz
+*.tar
 *.code-workspace
 .phpunit.result.cache
 php-errors.log

@@ -15,7 +15,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 namespace Mimir;
+
+use PhpParser\Node\Stmt\ElseIf_;
 
 require_once __DIR__ . '/../Model.php';
 require_once __DIR__ . '/Event.php';
@@ -39,6 +42,7 @@ class EventSeriesModel extends Model
      */
     public function getGamesSeries(EventPrimitive $event)
     {
+        $ratingsSeriesToggle = TRUE;
         if ($event->getSeriesLength() == 0) {
             throw new InvalidParametersException('This event doesn\'t support series');
         }
@@ -70,6 +74,7 @@ class EventSeriesModel extends Model
                 'sessionId' => $item->getSessionId(),
                 'score' => $item->getScore(),
                 'place' => $item->getPlace(),
+                'result' => $item->getRatingDelta(),
             ];
         }
 
@@ -89,8 +94,10 @@ class EventSeriesModel extends Model
             }
         }
 
-        // let's find a best series for the filtered players
-        $seriesResults = [];
+        // let's find a best series for the filtered players by place if _seriesScoreRating is not set.
+        $placeSeriesResults = [];
+        $resultSeriesResults = [];
+
         foreach ($filteredPlayersData as $playerId => $playerGames) {
             $offset = 0;
             $limit = $event->getSeriesLength();
@@ -101,7 +108,8 @@ class EventSeriesModel extends Model
                 return $a['sessionId'] - $b['sessionId'];
             });
 
-            $bestSeries = null;
+            $bestPlaceSeries = null;
+            $bestResultSeries = null;
             while (($offset + $limit) <= $gamesCount) {
                 $slicedGames = array_slice($playerGames, $offset, $limit);
                 /** @var int $places */
@@ -114,36 +122,77 @@ class EventSeriesModel extends Model
                     $i += $item['score'];
                     return $i;
                 }, 0);
-
+                /** @var float $results */
+                $results = array_reduce($slicedGames, function ($i, $item) {
+                    $i += $item['result'];
+                    return $i;
+                }, 0);
                 $sessionIds = array_map(function ($el) {
                     return $el['sessionId'];
                 }, $slicedGames);
 
-                if (!$bestSeries) {
+                if (!$bestPlaceSeries) {
                     // for the first iteration we should get the first series
-                    $bestSeries = [
+                    $bestPlaceSeries = [
                         'placesSum'  => $places,
                         'scoresSum'  => $scores,
                         'sessionIds' => $sessionIds,
+                        'resultsSum' => $results,
                     ];
                 } else {
                     // the less places the better
-                    if ($places <= $bestSeries['placesSum']) {
+                    if ($places <= $bestPlaceSeries['placesSum']) {
                         // we can have multiple series with same places sum
                         // let's get the one with better scores in that case
-                        if ($places == $bestSeries['placesSum']) {
+                        if ($places == $bestPlaceSeries['placesSum']) {
                             // the bigger scores the better
-                            if ($scores > $bestSeries['scoresSum']) {
-                                $bestSeries = [
+                            if ($scores > $bestPlaceSeries['scoresSum']) {
+                                $bestPlaceSeries = [
                                     'placesSum'  => $places,
                                     'scoresSum'  => $scores,
+                                    'resultsSum' => $results,
                                     'sessionIds' => $sessionIds,
                                 ];
                             }
                         } else {
-                            $bestSeries = [
+                            $bestPlaceSeries = [
                                 'placesSum'  => $places,
                                 'scoresSum'  => $scores,
+                                'resultsSum' => $results,
+                                'sessionIds' => $sessionIds,
+                            ];
+                        }
+                    }
+                }
+
+                if (!$bestResultSeries) {
+                    // for the first iteration we should get the first series
+                    $bestResultSeries = [
+                        'placesSum'  => $places,
+                        'scoresSum'  => $scores,
+                        'sessionIds' => $sessionIds,
+                        'resultsSum' => $results,
+                    ];
+                } else {
+                    // the less places the better
+                    if ($results >= $bestResultSeries['resultsSum']) {
+                        // we can have multiple series with same places sum
+                        // let's get the one with better scores in that case
+                        if ($results == $bestResultSeries['resultsSum']) {
+                            // the bigger scores the better
+                            if ($places < $bestResultSeries['placesSum']) {
+                                $bestResultSeries = [
+                                    'placesSum'  => $places,
+                                    'scoresSum'  => $scores,
+                                    'resultsSum' => $results,
+                                    'sessionIds' => $sessionIds,
+                                ];
+                            }
+                        } else {
+                            $bestResultSeries = [
+                                'placesSum'  => $places,
+                                'scoresSum'  => $scores,
+                                'resultsSum' => $results,
                                 'sessionIds' => $sessionIds,
                             ];
                         }
@@ -154,7 +203,7 @@ class EventSeriesModel extends Model
             }
 
             // It't implied that $bestSeries is not null after the loop, so we add guard here by continue otherwise
-            if (!$bestSeries) {
+            if (!$bestPlaceSeries || !$bestResultSeries) {
                 continue;
             }
 
@@ -173,15 +222,27 @@ class EventSeriesModel extends Model
                 $i += $item['place'];
                 return $i;
             }, 0);
+            $currentSeriesResults = array_reduce($currentSeries, function ($i, $item) {
+                $i += $item['results'];
+                return $i;
+            }, 0);
 
-            $bestSeries['playerId'] = $playerId;
-            $bestSeries['currentSeries'] = $currentSeriesSessionIds;
-            $bestSeries['currentSeriesScores'] = $currentSeriesScores;
-            $bestSeries['currentSeriesPlaces'] = $currentSeriesPlaces;
-            $seriesResults[] = $bestSeries;
+            $bestPlaceSeries['playerId'] = $playerId;
+            $bestPlaceSeries['currentSeries'] = $currentSeriesSessionIds;
+            $bestPlaceSeries['currentSeriesScores'] = $currentSeriesScores;
+            $bestPlaceSeries['currentSeriesPlaces'] = $currentSeriesPlaces;
+            $bestPlaceSeries['currentSeriesResults'] = $currentSeriesResults;
+            $bestResultSeries['playerId'] = $playerId;
+            $bestResultSeries['currentSeries'] = $currentSeriesSessionIds;
+            $bestResultSeries['currentSeriesScores'] = $currentSeriesScores;
+            $bestResultSeries['currentSeriesPlaces'] = $currentSeriesPlaces;
+            $bestResultSeries['currentSeriesResults'] = $currentSeriesResults;
+
+            $placeSeriesResults[] = $bestPlaceSeries;
+            $resultSeriesResults[] = $bestResultSeries;
         }
 
-        uasort($seriesResults, function ($a, $b) {
+        uasort($placeSeriesResults, function ($a, $b) {
             $diff = $a['placesSum'] - $b['placesSum'];
             if ($diff) {
                 return $diff > 0 ? 1 : -1;
@@ -196,24 +257,65 @@ class EventSeriesModel extends Model
             }
         });
 
+        uasort($resultSeriesResults, function ($a, $b) {
+            $diff = $a['resultsSum'] - $b['resultsSum'];
+            if ($diff) {
+                return $diff < 0 ? 1 : -1;
+            }
+            $scoreDiff = $b['placesSum'] - $a['placesSum'];
+            if (abs($scoreDiff) < 0.00001) {
+                return 0;
+            } else if ($scoreDiff > 0) {
+                return 1;
+            } else {
+                return -1;
+            }
+        });
+
         $players = EventModel::getPlayersOfGames($this->_ds, $games);
         $formattedResults = [];
-        foreach ($seriesResults as $item) {
-            $playerId = $item['playerId'];
-            $bestSeriesIds = $item['sessionIds'];
-            $bestScoresSum = $item['scoresSum'];
-            $bestPlacesSum = $item['placesSum'];
-            $formattedResults[] = [
-                'player' => $players[$item['playerId']],
-                'best_series' => $this->_formatSeries($playerId, $bestSeriesIds, $games, $sessionResults),
-                'best_series_scores' => $bestScoresSum,
-                'best_series_places' => $bestPlacesSum,
-                'best_series_avg_place' => $this->_formatAvgPlace($bestPlacesSum, count($bestSeriesIds)),
-                'current_series' => $this->_formatSeries($playerId, $item['currentSeries'], $games, $sessionResults),
-                'current_series_scores' => $item['currentSeriesScores'],
-                'current_series_places' => $item['currentSeriesPlaces'],
-                'current_series_avg_place' => $this->_formatAvgPlace($item['currentSeriesPlaces'], count($item['currentSeries'])),
-            ];
+        if (!$ratingsSeriesToggle) {
+            foreach ($placeSeriesResults as $item) {
+                $playerId = $item['playerId'];
+                $bestSeriesIds = $item['sessionIds'];
+                $bestScoresSum = $item['scoresSum'];
+                $bestPlacesSum = $item['placesSum'];
+                $bestResultsSum = $item['resultsSum'];
+                $formattedResults[] = [
+                    'player' => $players[$item['playerId']],
+                    'best_series' => $this->_formatSeries($playerId, $bestSeriesIds, $games, $sessionResults),
+                    'best_series_scores' => $bestScoresSum,
+                    'best_series_places' => $bestPlacesSum,
+                    'best_series_results' => $bestResultsSum,
+                    'best_series_avg_place' => $this->_formatAvgPlace($bestPlacesSum, count($bestSeriesIds)),
+                    'current_series' => $this->_formatSeries($playerId, $item['currentSeries'], $games, $sessionResults),
+                    'current_series_scores' => $item['currentSeriesScores'],
+                    'current_series_results' => $item['currentSeriesResults'],
+                    'current_series_places' => $item['currentSeriesPlaces'],
+                    'current_series_avg_place' => $this->_formatAvgPlace($item['currentSeriesPlaces'], count($item['currentSeries'])),
+                ];
+            }
+        } else if ($ratingsSeriesToggle) {
+            foreach ($resultSeriesResults as $item) {
+                $playerId = $item['playerId'];
+                $bestSeriesIds = $item['sessionIds'];
+                $bestScoresSum = $item['scoresSum'];
+                $bestPlacesSum = $item['placesSum'];
+                $bestResultsSum = $item['resultsSum'];
+                $formattedResults[] = [
+                    'player' => $players[$item['playerId']],
+                    'best_series' => $this->_formatSeries($playerId, $bestSeriesIds, $games, $sessionResults),
+                    'best_series_scores' => $bestScoresSum,
+                    'best_series_places' => $bestPlacesSum,
+                    'best_series_results' => $bestResultsSum,
+                    'best_series_avg_place' => $this->_formatAvgPlace($bestPlacesSum, count($bestSeriesIds)),
+                    'current_series' => $this->_formatSeries($playerId, $item['currentSeries'], $games, $sessionResults),
+                    'current_series_scores' => $item['currentSeriesScores'],
+                    'current_series_results' => $item['currentSeriesResults'],
+                    'current_series_places' => $item['currentSeriesPlaces'],
+                    'current_series_avg_place' => $this->_formatAvgPlace($item['currentSeriesPlaces'], count($item['currentSeries'])),
+                ];
+            }
         }
 
         return $formattedResults;
