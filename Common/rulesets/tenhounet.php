@@ -15,6 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 namespace Common;
 
 require_once __DIR__ . '/../YakuMap.php';
@@ -25,15 +26,16 @@ require_once __DIR__ . '/../generated/Common/RulesetConfig.php';
 
 return (new RulesetConfig())
     ->setUma((new Uma())
-        ->setPlace1(15000)
-        ->setPlace2(5000)
-        ->setPlace3(-5000)
-        ->setPlace4(-15000)
+            ->setPlace1(15000)
+            ->setPlace2(5000)
+            ->setPlace3(-5000)
+            ->setPlace4(-15000)
     )
     ->setUmaType(UmaType::UMA_TYPE_UMA_SIMPLE)
     ->setEqualizeUma(false)
     ->setWithWinningDealerHonbaSkipped(false)
     ->setOka(20000)
+    ->setHonbaValue(300)
     ->setReplacementPlayerFixedPoints(-15000)
     ->setReplacementPlayerOverrideUma(-15000)
     ->setAllowedYaku(YakuMap::listExcept([

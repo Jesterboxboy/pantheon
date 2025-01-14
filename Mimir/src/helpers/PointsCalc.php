@@ -76,6 +76,7 @@ class PointsCalc
         int $totalRiichiInRound = 0,
     ): array {
         self::resetPaymentsInfo();
+        $honbaValue = $rules->rules()->getHonbaValue();
         $pointsDiff = self::_calcPoints($rules, $han, $fu, false, $isDealer);
 
         if (empty($winnerId) || empty($loserId)) {
@@ -130,14 +131,14 @@ class PointsCalc
         if ($rules->rules()->getDoubleronHonbaAtamahane() && $closestWinner) {
             // on tenhou we had to give all honba sticks to closest winner only
             if ($winnerId == $closestWinner) {
-                $currentScores[$winnerId] += 300 * $honba;
-                $currentScores[$loserId] -= 300 * $honba;
-                self::$_lastPaymentsInfo['honba'][$winnerId . '<-' . $loserId] = 300 * $honba;
+                $currentScores[$winnerId] += $honbaValue * $honba;
+                $currentScores[$loserId] -= $honbaValue * $honba;
+                self::$_lastPaymentsInfo['honba'][$winnerId . '<-' . $loserId] = $honbaValue * $honba;
             }
         } else {
-            $currentScores[$winnerId] += 300 * $honba;
-            $currentScores[$loserId] -= 300 * $honba;
-            self::$_lastPaymentsInfo['honba'][$winnerId . '<-' . $loserId] = 300 * $honba;
+            $currentScores[$winnerId] += $honbaValue * $honba;
+            $currentScores[$loserId] -= $honbaValue * $honba;
+            self::$_lastPaymentsInfo['honba'][$winnerId . '<-' . $loserId] = $honbaValue * $honba;
         }
 
         return $currentScores;
@@ -171,6 +172,7 @@ class PointsCalc
         ?int $paoPlayerId
     ) {
         self::resetPaymentsInfo();
+        $honbaValue = $rules->rules()->getHonbaValue();
 
         if (empty($winnerId)) {
             throw new InvalidParametersException('Tsumo must have winner');
@@ -230,14 +232,14 @@ class PointsCalc
         $currentScores[$winnerId] += 1000 * count($riichiIds);
         $currentScores[$winnerId] += 1000 * $riichiBetsCount;
         self::$_lastPaymentsInfo['riichi'][$winnerId . '<-'] = 1000 * $riichiBetsCount;
-        $currentScores[$winnerId] += 300 * $honba;
+        $currentScores[$winnerId] += $honbaValue * $honba;
 
         foreach ($currentScores as $playerId => $value) {
             if ($playerId == $winnerId) {
                 continue;
             }
-            $currentScores[$playerId] -= 100 * $honba;
-            self::$_lastPaymentsInfo['honba'][$winnerId . '<-' . $playerId] = 100 * $honba;
+            $currentScores[$playerId] -= ($honbaValue / 3) * $honba;
+            self::$_lastPaymentsInfo['honba'][$winnerId . '<-' . $playerId] = ($honbaValue / 3) * $honba;
         }
 
         return $currentScores;

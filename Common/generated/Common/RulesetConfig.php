@@ -165,6 +165,10 @@ class RulesetConfig extends \Google\Protobuf\Internal\Message
      * Generated from protobuf field <code>bool chombo_ends_game = 38;</code>
      */
     protected $chombo_ends_game = false;
+    /**
+     * Generated from protobuf field <code>int32 honba_value = 39;</code>
+     */
+    protected $honba_value = 0;
 
     /**
      * Constructor.
@@ -210,9 +214,11 @@ class RulesetConfig extends \Google\Protobuf\Internal\Message
      *     @type bool $with_yakitori
      *     @type int $yakitori_penalty
      *     @type bool $chombo_ends_game
+     *     @type int $honba_value
      * }
      */
-    public function __construct($data = NULL) {
+    public function __construct($data = NULL)
+    {
         \GPBMetadata\Proto\Atoms::initOnce();
         parent::__construct($data);
     }
@@ -1073,5 +1079,25 @@ class RulesetConfig extends \Google\Protobuf\Internal\Message
         return $this;
     }
 
-}
+    /**
+     * Generated from protobuf field <code>int32 honba_value = 39;</code>
+     * @return int
+     */
+    public function getHonbaValue()
+    {
+        return $this->honba_value;
+    }
 
+    /**
+     * Generated from protobuf field <code>int32 honba_value = 39;</code>
+     * @param int $var
+     * @return $this
+     */
+    public function setHonbaValue($var)
+    {
+        GPBUtil::checkInt32($var);
+        $this->honba_value = $var;
+
+        return $this;
+    }
+}
