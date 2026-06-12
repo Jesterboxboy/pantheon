@@ -110,3 +110,7 @@ Skirnir-dist/dist/
 Skirnir-dist/node_modules/
 Skirnir-dist/package.json
 Skirnir-dist/pnpm-lock.yaml
+
+CLAUDE.md
+.claude/
+Improvements.md
