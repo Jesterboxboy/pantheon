@@ -614,6 +614,12 @@ export interface RulesetConfig {
    * Points paid to EACH other player on chombo; 0/unset means 6000.
    */
   sanmaChomboPayments: number;
+  /**
+   * When time is out under the one-more-hand policy, count a chombo as a played
+   * hand (consumes the one-more-hand allowance), instead of treating it as a free
+   * do-over. Independent of chombo_ends_game.
+   */
+  chomboCountsAsHand: boolean;
 }
 
 export interface MajsoulSearchEx {
@@ -7088,6 +7094,7 @@ export const RulesetConfig = {
       sanmaNoTsumoLoss: false,
       sanmaDrawPayments: 0,
       sanmaChomboPayments: 0,
+      chomboCountsAsHand: false,
       ...msg,
     };
   },
@@ -7230,6 +7237,9 @@ export const RulesetConfig = {
     }
     if (msg.sanmaChomboPayments) {
       writer.writeInt32(44, msg.sanmaChomboPayments);
+    }
+    if (msg.chomboCountsAsHand) {
+      writer.writeBool(45, msg.chomboCountsAsHand);
     }
     return writer;
   },
@@ -7430,6 +7440,10 @@ export const RulesetConfig = {
         }
         case 44: {
           msg.sanmaChomboPayments = reader.readInt32();
+          break;
+        }
+        case 45: {
+          msg.chomboCountsAsHand = reader.readBool();
           break;
         }
         default: {
@@ -13461,6 +13475,7 @@ export const RulesetConfigJSON = {
       sanmaNoTsumoLoss: false,
       sanmaDrawPayments: 0,
       sanmaChomboPayments: 0,
+      chomboCountsAsHand: false,
       ...msg,
     };
   },
@@ -13609,6 +13624,9 @@ export const RulesetConfigJSON = {
     }
     if (msg.sanmaChomboPayments) {
       json["sanmaChomboPayments"] = msg.sanmaChomboPayments;
+    }
+    if (msg.chomboCountsAsHand) {
+      json["chomboCountsAsHand"] = msg.chomboCountsAsHand;
     }
     return json;
   },
@@ -13817,6 +13835,11 @@ export const RulesetConfigJSON = {
       json["sanmaChomboPayments"] ?? json["sanma_chombo_payments"];
     if (_sanmaChomboPayments_) {
       msg.sanmaChomboPayments = protoscript.parseNumber(_sanmaChomboPayments_);
+    }
+    const _chomboCountsAsHand_ =
+      json["chomboCountsAsHand"] ?? json["chombo_counts_as_hand"];
+    if (_chomboCountsAsHand_) {
+      msg.chomboCountsAsHand = _chomboCountsAsHand_;
     }
     return msg;
   },

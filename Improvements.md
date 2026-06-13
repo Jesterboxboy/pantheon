@@ -220,9 +220,11 @@ ema:   uma all equal → [0,0,0,0]   uma 2nd==3rd tied → [15000,0,0,-15000]   
   dealer tsumo winner = `2 * $doubleRounded`; child tsumo winner = `$doubleRounded + $rounded`
   (one ko payer instead of two). Per-payer values and all ron values stay unchanged.
 - `tsumo()` (~163-247): payer loops are already ghost-free (ghost not in `_scores`). Honba
-  (~236-244): keep per-payer `($honbaValue / 3) * $honba` (= 100/honba), but change the winner
-  credit from `$honbaValue * $honba` to the **sum of payer contributions** — in sanma the winner
-  receives `2 * (honbaValue / 3) * honba` (200/honba).
+  (~236-249): the per-payer share is `(honbaValue / opponentCount) * honba`, where `opponentCount`
+  is the number of actual payers (2 in sanma, 3 in yonma). The winner always receives the full
+  `honbaValue * honba` (the sum of payer contributions) — **symmetric with ron**. In sanma at
+  default `honbaValue=300`, each opponent pays 150/honba, winner collects 300/honba (was incorrectly
+  333/300 under the hardcoded /3 formula).
 - `ron()` (~64-146): no change — winner/loser/pao logic is player-count agnostic; honba on ron
   stays the full `honbaValue` from the single loser. Double ron (2 winners + 1 loser) is valid in
   sanma and works through the existing multiron path.
@@ -304,12 +306,14 @@ has no FK.
 
 ### 1.9 Tests (Mimir/Common)
 
-- `Mimir/tests/helpers/PointsCalcTest.php`: sanma with-tsumo-loss suites — child mangan tsumo =
-  2000 + 4000 = 6000 total; dealer mangan tsumo = 2 × 4000; honba tsumo = 100 × 2 payers; draw
-  splits for 1 and 2 tenpai with default 3000 AND custom 4000 (`+4000` / `-2000` each, and
-  `+2000` each / `-4000`); chombo flat payment with default 6000 (`-12000` / `+6000` each, same
-  for oya and ko offender) AND a custom amount; nagashi mangan-tsumo payments (dealer `+8000` /
-  `-4000` each; non-dealer `+6000` with dealer `-4000`, ko `-2000`).
+- `Mimir/tests/helpers/SanmaPointsCalcTest.php`: `testTsumoHonba()` verifies that honba is split
+  evenly among the 2 payers in sanma (150/honba per payer at default `honbaValue=300`), with the
+  winner collecting the full total per honba. Other sanma with-tsumo-loss suites — child mangan
+  tsumo = 2000 + 4000 = 6000 total; dealer mangan tsumo = 2 × 4000; draw splits for 1 and 2
+  tenpai with default 3000 AND custom 4000 (`+4000` / `-2000` each, and `+2000` each / `-4000`);
+  chombo flat payment with default 6000 (`-12000` / `+6000` each, same for oya and ko offender)
+  AND a custom amount; nagashi mangan-tsumo payments (dealer `+8000` / `-4000` each; non-dealer
+  `+6000` with dealer `-4000`, ko `-2000`).
 - `Mimir/tests/helpers/SessionStateTest.php`: dealer rotation over 3 seats; hanchan end after S3
   (round 7); tonpuusen end after E3 (round 4); buttobi; oorasu agariyame with 3 players; ghost
   never present in scores.
@@ -349,9 +353,13 @@ every PointsCalc payment loop ghost-free. Added a private `_maxRegularRound()` h
 **PointsCalc (1.3).** As planned, with these concrete shapes:
 
 - `tsumo()` winner total in `_calcPoints()` branches on `getWithSanma()`: dealer `2 * doubleRounded`,
-  child `doubleRounded + rounded`. Honba credit to the winner was generalized to
-  `(honbaValue / 3) * (count($currentScores) - 1) * $honba` — i.e. it follows the number of real
-  payers (2 in sanma → 200/honba, 3 in yonma → 300/honba) rather than a hardcoded constant.
+  child `doubleRounded + rounded`. Honba payment (~236-249) is now **symmetric between ron and
+  tsumo**: the total `honbaValue` is split evenly among the actual payers (`opponentCount = count
+  ($currentScores) - 1`), so each pays `(honbaValue / opponentCount) * honba`, and the winner
+  collects the full total. In sanma at default `honbaValue=300`, each of the 2 opponents pays
+  150/honba (not the hardcoded 100/honba from the old /3 formula), so the winner receives
+  300/honba (not 200/honba). Yonma is unchanged: 3 opponents at 100/honba each, winner
+  collects 300/honba.
 - `draw()`, `nagashi()` both gained a leading `\Common\Ruleset $rules` parameter. Every call site
   was updated: `SessionState::_updateAfterDraw`/`_updateAfterNagashi`, **and the dry-run preview
   paths in `controllers/Players.php`** (`PreviewRound`) which also call these statics directly.
