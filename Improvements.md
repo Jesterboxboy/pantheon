@@ -918,3 +918,87 @@ Forseti option stays disabled.
 
 
 ## Milestone 6
+
+---
+
+# EMA timer — classify hands by win-announcement time, not submission time ✅ DONE
+
+> **Status: implemented and verified.** Mimir full PHPUnit suite passes (296 tests, incl. 3 new),
+> PHPStan level 8 clean, PHPCS clean; Tyr typecheck / eslint / prettier clean. Unrelated to the
+> sanma work above.
+
+## Request
+
+The new EMA (European Mahjong Association) tournament rules we follow stipulate that **a hand
+ends the moment a player announces a win**. A match also runs a fixed **75-minute timer**: when
+it expires, the hand currently *in play* plus **one more hand** are played, then the match ends.
+
+The problem: in Pantheon there is a ~30-second gap between a win being announced and the score
+being entered and submitted. If the match timer expires *inside that gap*, the rules say two more
+hands should follow (the hand being scored already ended in-time, so the hand *in play* at the
+buzzer is the next one, + one more). But Pantheon checks timer expiry only at submission and so
+treats the just-finished in-time hand as the first post-buzzer hand — playing only **1** more
+hand instead of **2**.
+
+The existing workaround — a referee/admin adding a minute to the table via Forseti
+(`AddExtraTime`) — works but needs a non-playing official at every table, which is cumbersome.
+
+**Chosen solution (lowest effort, no extra round-trip):** capture the match-timer reading at the
+moment the win is announced (when the player opens the `+` outcome menu — the closest automatic
+proxy) and send it as one extra field on the existing `AddRound` call. The server then classifies
+the hand against the buzzer using *that* value (`secondsRemaining <= 0`) instead of `time()`.
+Rejected alternatives: a "pause the timer" RPC (server-authoritative but needs a new RPC, a DB
+column, cancel/cleanup logic, an extra round-trip, and risks extending total match time); and a
+fixed grace period (tiniest change but only a heuristic — shifts the whole boundary and can
+misclassify a quick post-buzzer hand).
+
+## Implementation (as built)
+
+**Proto.** Added `optional int32 outcome_timer_seconds_remaining = 3;` to `GamesAddRoundPayload`
+(`Common/proto/mimir.proto`); `make proto_gen` regenerated `Common/generated/Common/GamesAddRoundPayload.php`
+(getter/`has*`/setter) and `Common/tsclients/proto/mimir.pb.ts` (`outcomeTimerSecondsRemaining?: number`).
+
+**Server (Mimir).** Threaded an optional `?int $outcomeTimerSecondsRemaining = null` down the
+chain: `TwirpServer::AddRound` (reads `hasOutcomeTimerSecondsRemaining() ? get… : null`) →
+`GamesController::addRound` → `InteractiveSessionModel::addRound` →
+`Session::updateCurrentState`. There the `$noTimeLeft` test now uses
+`outcomeTimerSecondsRemaining <= 0` when present, falling back to the original
+`lastTimer + gameDuration*60 + extraTime < time()` when absent (online replays / old clients).
+The two identical expiry computations (one per ending policy, `ONE_MORE_HAND` and
+`END_AFTER_HAND`) were de-duplicated into a single pre-switch expression. `ponytail:` the client
+value is trusted (no server-side clamp) — same trust surface as the already client-supplied
+yaku/han/scores; upgrade path if abused is a server-stamped RPC on menu-open. The dry-run
+`PreviewRound` path and online-replay parsers keep the `time()` fallback (default `null`).
+
+**Client (Tyr).** No extra network call — the client already holds the server-synced countdown
+(`state.timer.secondsRemaining`, kept fresh every second by `store/middlewares/timer.ts`). New
+`SET_HAND_END_TIMER` action (`store/actions/interfaces.ts`); on opening the `+` outcome menu
+(`components/pages/TablePrimaryView/TablePrimaryView.tsx`, wired in
+`components/screens/TableCurrentGame/TableCurrentGame.tsx`) it stores `timer.secondsRemaining` in
+a new `IAppState.currentHandEndTimerRemaining` (`store/reducers/mimirReducer.ts`, reset on
+`ADD_ROUND_SUCCESS`). `services/riichiApiTwirp.ts::addRound` sends it as
+`outcomeTimerSecondsRemaining`. Naming uses **HandEnd** (not "start") — the hand ends when the win
+is announced, which is exactly when the `+` menu opens.
+
+**Tests.** Three cases in `Mimir/tests/models/InteractiveSessionTest.php` (helper
+`_lastHandStartedForTimerValue()`, modeled on the existing chombo timer helper, using an
+expired-by-server-clock `ONE_MORE_HAND` timer event and a `draw` round): win **before** the
+buzzer (`secondsRemaining=5` → `lastHandStarted` stays false), win **at/after** the buzzer
+(`=0` → flag set), and **absent** value (`null` → falls back to server `time()`, flag set).
+
+## Verification
+
+```text
+Mimir php bin/unit.php  → OK (incomplete/risky): Tests: 296, Assertions: 2131, Risky: 37
+  (3 new timer-classification tests pass; testEndGame etc. unchanged)
+phpstan analyse (level 8)  → [OK] No errors
+phpcs --standard=PSR2      → no violations (TwirpServer.php is phpcs-excluded by Mimir/Makefile)
+Tyr: tsc --noEmit / eslint / prettier -c  → all clean
+```
+
+**Flagged (pre-existing, not touched):** running `InteractiveSessionTest.php` *in isolation*
+errors on `testEndGame` with `Class "Mimir\JobsQueuePrimitive" not found` —
+`Mimir/src/primitives/Session.php` never `require_once`s `primitives/JobsQueue.php` (Mimir has no
+PSR-4 autoloader for the `Mimir\` namespace, only manual `require_once`). It passes in the full
+suite because an earlier test file loads the class first. A one-line `require_once` in `Session.php`
+would fix the isolated run; left out of scope for this change.
