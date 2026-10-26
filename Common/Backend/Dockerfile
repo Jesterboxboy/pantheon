@@ -63,6 +63,8 @@ RUN apk update && \
     musl-utils \
     opendkim-utils \
     mailx && \
+    # alpine >= 3.24 no longer ships the unversioned php/phpdbg symlinks for php83
+    ln -sf php83 /usr/bin/php && ln -sf phpdbg83 /usr/bin/phpdbg && \
     (rm "/tmp/"* 2>/dev/null || true) && (rm -rf /var/cache/apk/* 2>/dev/null || true)
 
 ENV TIMEZONE="Europe/Berlin"

@@ -26,11 +26,9 @@ services:
       args:
         CONTAINER_ARCH: amd64
     cgroup: host
-    profiles:
-      - donotstart
     cap_add:
       - ALL
-    image: ghcr.io/mahjongpantheon/pantheon-hermod-amd64:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-hermod-amd64:latest
     hostname: ${ALLOWED_SENDER_DOMAINS:-pantheon-hermod.local}
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
@@ -131,7 +129,7 @@ services:
       - "4414:4414/udp"
     depends_on:
       - db.pantheon.internal
-      #- hermod.pantheon.internal
+      - hermod.pantheon.internal
     volumes:
       - ./Frey:/var/www/html/Frey
       - ./Frey-dist:/var/www/html/Frey-dist

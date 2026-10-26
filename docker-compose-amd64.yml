@@ -28,7 +28,7 @@ services:
     cgroup: host
     cap_add:
       - ALL
-    image: ghcr.io/mahjongpantheon/pantheon-hermod-amd64:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-hermod-amd64:latest
     hostname: ${ALLOWED_SENDER_DOMAINS:-pantheon-hermod.local}
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
