@@ -49,10 +49,11 @@ services:
       context: ./Skirnir
       args:
         CONTAINER_ARCH: amd64
+        BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
     cgroup: host
     cap_add:
       - ALL
-    image: ghcr.io/mahjongpantheon/pantheon-skirnir-amd64:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-skirnir-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
     environment:
@@ -109,10 +110,11 @@ services:
       context: ./Frey
       args:
         CONTAINER_ARCH: amd64
+        BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
     cgroup: host
     cap_add:
       - ALL
-    image: ghcr.io/mahjongpantheon/pantheon-frey-amd64:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-frey-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
     ports:
@@ -146,10 +148,11 @@ services:
       context: ./Mimir
       args:
         CONTAINER_ARCH: amd64
+        BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
     cgroup: host
     cap_add:
       - ALL
-    image: ghcr.io/mahjongpantheon/pantheon-mimir-amd64:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-mimir-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
     ports:
@@ -193,10 +196,11 @@ services:
       context: ./Tyr
       args:
         CONTAINER_ARCH: amd64
+        BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
     cgroup: host
     cap_add:
       - ALL
-    image: ghcr.io/mahjongpantheon/pantheon-tyr-amd64:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-tyr-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
     environment:
@@ -222,10 +226,11 @@ services:
       context: ./Forseti
       args:
         CONTAINER_ARCH: amd64
+        BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
     cgroup: host
     cap_add:
       - ALL
-    image: ghcr.io/mahjongpantheon/pantheon-forseti-amd64:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-forseti-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
     environment:
@@ -251,10 +256,11 @@ services:
       context: ./Sigrun
       args:
         CONTAINER_ARCH: amd64
+        BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
     cgroup: host
     cap_add:
       - ALL
-    image: ghcr.io/mahjongpantheon/pantheon-sigrun-amd64:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-sigrun-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
     environment:
@@ -280,10 +286,11 @@ services:
       context: ./Gullveig
       args:
         CONTAINER_ARCH: amd64
+        BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
     cgroup: host
     cap_add:
       - ALL
-    image: ghcr.io/mahjongpantheon/pantheon-gullveig-amd64:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-gullveig-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
     ports:
@@ -302,10 +309,11 @@ services:
       context: ./Meili
       args:
         CONTAINER_ARCH: amd64
+        BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
     cgroup: host
     cap_add:
       - ALL
-    image: ghcr.io/mahjongpantheon/pantheon-meili-amd64:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-meili-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
     ports:
@@ -324,10 +332,11 @@ services:
       context: ./Bragi
       args:
         CONTAINER_ARCH: amd64
+        BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
     cgroup: host
     cap_add:
       - ALL
-    image: ghcr.io/mahjongpantheon/pantheon-bragi-amd64:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-bragi-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
     environment:
@@ -350,10 +359,11 @@ services:
       context: ./Hugin
       args:
         CONTAINER_ARCH: amd64
+        BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
     cgroup: host
     cap_add:
       - ALL
-    image: ghcr.io/mahjongpantheon/pantheon-hugin-amd64:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-hugin-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
     ports:

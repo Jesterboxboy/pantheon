@@ -1,5 +1,6 @@
 ARG CONTAINER_ARCH=amd64
-FROM ghcr.io/mahjongpantheon/pantheon-backend-common-v3-${CONTAINER_ARCH}:latest
+ARG BASE_REGISTRY=ghcr.io/mahjongpantheon
+FROM ${BASE_REGISTRY}/pantheon-backend-common-v3-${CONTAINER_ARCH}:latest
 
 # these should match auth data in dbinit_hugin.sql
 ENV PHINX_DB_HUGIN_NAME=hugin

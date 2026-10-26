@@ -14,6 +14,8 @@ package-lock.json
 .github/
 
 .env.e2e
+# compose interpolation vars, e.g. IMAGE_REGISTRY=ghcr.io/<you>
+/.env
 
 !Env/.env.e2e
 Env/.env.development.local

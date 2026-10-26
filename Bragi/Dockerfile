@@ -1,5 +1,6 @@
 ARG CONTAINER_ARCH=amd64
-FROM ghcr.io/mahjongpantheon/pantheon-frontend-common-v3-${CONTAINER_ARCH}:latest
+ARG BASE_REGISTRY=ghcr.io/mahjongpantheon
+FROM ${BASE_REGISTRY}/pantheon-frontend-common-v3-${CONTAINER_ARCH}:latest
 
 # copy entry point
 COPY entrypoint.sh /entrypoint.sh
