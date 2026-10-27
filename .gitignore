@@ -25,6 +25,7 @@ Forseti/.env.production
 Sigrun/.env.production
 Bragi/.env.production
 Skirnir/.env.production
+Frey/.env.production
 Tyr/.env.development
 Forseti/.env.development
 Sigrun/.env.development

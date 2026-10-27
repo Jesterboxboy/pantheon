@@ -25,9 +25,6 @@ services:
       context: ./Hermod
       args:
         CONTAINER_ARCH: amd64
-    cgroup: host
-    cap_add:
-      - ALL
     image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-hermod-amd64:latest
     hostname: ${ALLOWED_SENDER_DOMAINS:-pantheon-hermod.local}
     env_file:
@@ -50,11 +47,8 @@ services:
       args:
         CONTAINER_ARCH: amd64
         BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
-    cgroup: host
     profiles:
       - donotstart
-    cap_add:
-      - ALL
     image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-skirnir-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
@@ -78,9 +72,6 @@ services:
       context: ./Database
       args:
         CONTAINER_ARCH: amd64
-    cgroup: host
-    cap_add:
-      - ALL
     image: ghcr.io/mahjongpantheon/pantheon-database-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
@@ -113,9 +104,6 @@ services:
       args:
         CONTAINER_ARCH: amd64
         BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
-    cgroup: host
-    cap_add:
-      - ALL
     image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-frey-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
@@ -151,9 +139,6 @@ services:
       args:
         CONTAINER_ARCH: amd64
         BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
-    cgroup: host
-    cap_add:
-      - ALL
     image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-mimir-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
@@ -176,9 +161,6 @@ services:
           - mimir.pantheon.internal
   pgadmin.pantheon.internal:
     image: docker.io/dpage/pgadmin4:8.11
-    cgroup: host
-    cap_add:
-      - ALL
     ports:
       - "127.0.0.1:5632:80"
     profiles:
@@ -201,9 +183,6 @@ services:
       args:
         CONTAINER_ARCH: amd64
         BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
-    cgroup: host
-    cap_add:
-      - ALL
     image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-tyr-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
@@ -231,9 +210,6 @@ services:
       args:
         CONTAINER_ARCH: amd64
         BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
-    cgroup: host
-    cap_add:
-      - ALL
     image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-forseti-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
@@ -261,9 +237,6 @@ services:
       args:
         CONTAINER_ARCH: amd64
         BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
-    cgroup: host
-    cap_add:
-      - ALL
     image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-sigrun-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
@@ -291,9 +264,6 @@ services:
       args:
         CONTAINER_ARCH: amd64
         BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
-    cgroup: host
-    cap_add:
-      - ALL
     image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-gullveig-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
@@ -314,9 +284,6 @@ services:
       args:
         CONTAINER_ARCH: amd64
         BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
-    cgroup: host
-    cap_add:
-      - ALL
     image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-meili-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
@@ -337,11 +304,8 @@ services:
       args:
         CONTAINER_ARCH: amd64
         BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
-    cgroup: host
     profiles:
       - donotstart
-    cap_add:
-      - ALL
     image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-bragi-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
@@ -366,11 +330,8 @@ services:
       args:
         CONTAINER_ARCH: amd64
         BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
-    cgroup: host
     profiles:
       - donotstart
-    cap_add:
-      - ALL
     image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-hugin-amd64:latest
     env_file:
       - ./Env/${ENV_FILENAME:-.env.production}
@@ -406,9 +367,6 @@ services:
       context: ./Fenrir
       args:
         CONTAINER_ARCH: amd64
-    cgroup: host
-    cap_add:
-      - ALL
     image: ghcr.io/mahjongpantheon/pantheon-fenrir-amd64:latest
     profiles:
       - e2e
@@ -464,11 +422,8 @@ services:
           - cadvisor.pantheon.internal
   dbwatcher.pantheon.internal:
     image: quay.io/prometheuscommunity/postgres-exporter:latest
-    cgroup: host
     profiles:
       - donotstart
-    cap_add:
-      - ALL
     user: root
     ports:
       - "127.0.0.1:9187:9187"
@@ -485,11 +440,8 @@ services:
           - dbwatcher.pantheon.internal
   grafana.pantheon.internal:
     image: docker.io/grafana/grafana-oss:latest
-    cgroup: host
     profiles:
       - donotstart
-    cap_add:
-      - ALL
     restart: unless-stopped
     ports:
       - "127.0.0.1:3000:3000"
@@ -502,11 +454,8 @@ services:
           - grafana.pantheon.internal
   dozzle.pantheon.internal:
     image: amir20/dozzle:latest
-    cgroup: host
     profiles:
       - donotstart
-    cap_add:
-      - ALL
     restart: unless-stopped
     ports:
       - "127.0.0.1:8050:8080"
