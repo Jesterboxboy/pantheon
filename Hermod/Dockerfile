@@ -1,5 +1,6 @@
 ARG CONTAINER_ARCH=amd64
-FROM ghcr.io/mahjongpantheon/pantheon-backend-common-v3-${CONTAINER_ARCH}:latest
+ARG BASE_REGISTRY=ghcr.io/mahjongpantheon
+FROM ${BASE_REGISTRY}/pantheon-backend-common-v3-${CONTAINER_ARCH}:latest
 
 COPY       /configs/supervisord.conf     /etc/supervisord.conf
 COPY       /configs/rsyslog*.conf        /etc/

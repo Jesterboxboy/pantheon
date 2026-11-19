@@ -25,6 +25,7 @@ services:
       context: ./Hermod
       args:
         CONTAINER_ARCH: amd64
+        BASE_REGISTRY: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}
     image: ${IMAGE_REGISTRY:-ghcr.io/mahjongpantheon}/pantheon-hermod-amd64:latest
     hostname: ${ALLOWED_SENDER_DOMAINS:-pantheon-hermod.local}
     env_file:
